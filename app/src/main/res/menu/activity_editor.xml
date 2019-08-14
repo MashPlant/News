@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="utf-8"?>
+<menu xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto">
+    <item
+        android:id="@+id/menu_save"
+        android:icon="@drawable/baseline_save_white_48dp"
+        android:title="@string/news_save"
+        app:showAsAction="ifRoom" />
+    <item
+        android:id="@+id/share"
+        android:icon="@drawable/baseline_share_white_48dp"
+        android:title="@string/news_share"
+        app:showAsAction="ifRoom" />
+    <item
+        android:id="@+id/export"
+        android:title="@string/news_export" />
+    <item
+        android:id="@+id/menu_markdown"
+        android:title="@string/editor_plain_text" />
+</menu>

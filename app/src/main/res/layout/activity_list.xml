@@ -1,0 +1,80 @@
+<?xml version="1.0" encoding="utf-8"?>
+<android.support.v4.widget.DrawerLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:id="@+id/drawer_layout"
+    android:layout_width="fill_parent"
+    android:layout_height="fill_parent"
+    android:orientation="vertical">
+
+    <!--主界面-->
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:background="@color/background_gray"
+        android:orientation="vertical">
+
+        <android.support.v7.widget.Toolbar
+            android:id="@+id/toolbar"
+            android:layout_width="match_parent"
+            android:layout_height="?attr/actionBarSize"
+            android:background="@color/colorPrimary"
+            app:popupTheme="@style/ThemeOverlay.AppCompat.Light"
+            app:theme="@style/ThemeOverlay.AppCompat.Dark.ActionBar"
+            app:title="@string/list_title" />
+
+        <com.java.lichenhao.TagManager
+            android:id="@+id/tag_group_manager"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_margin="0dp"
+            android:padding="10dp"
+            android:visibility="invisible"
+            app:container_background_color="@color/background_white"
+            app:container_border_color="@color/background_gray"
+            app:container_border_width="5dp"
+            app:horizontal_interval="10dp"
+            app:tag_clickable="true"
+            app:tag_max_length="8"
+            app:tag_ripple_duration="300"
+            app:tag_theme="pure_teal"
+            app:vertical_interval="10dp" />
+
+        <com.marshalchen.ultimaterecyclerview.UltimateRecyclerView
+            android:id="@+id/ultimate_recycler_view"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            app:recyclerviewEmptyView="@layout/list_empty_view" />
+
+        <android.support.design.widget.FloatingActionButton
+            android:id="@+id/new_news_button"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_gravity="bottom|end"
+            android:layout_marginTop="-96dp"
+            android:layout_marginEnd="12dp"
+            android:clickable="true"
+            android:focusable="true"
+            app:backgroundTint="@color/colorSecondary"
+            app:srcCompat="@drawable/baseline_add_white_48dp" />
+
+    </LinearLayout>
+
+    <!--左滑导航栏-->
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:layout_gravity="start">
+
+        <android.support.design.widget.NavigationView
+            android:id="@+id/nav_view"
+            android:layout_width="wrap_content"
+            android:layout_height="match_parent"
+            android:background="@color/background_gray"
+            app:headerLayout="@layout/nav_header"
+            app:itemBackground="@color/background_gray"
+            app:menu="@menu/navigation_menu" />
+
+    </LinearLayout>
+
+</android.support.v4.widget.DrawerLayout>
