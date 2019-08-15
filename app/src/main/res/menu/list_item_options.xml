@@ -1,17 +1,14 @@
 <?xml version="1.0" encoding="utf-8"?>
 <menu xmlns:android="http://schemas.android.com/apk/res/android">
     <item
-        android:id="@+id/preview"
-        android:title="@string/news_preview" />
+        android:id="@+id/favorite"
+        android:title="@string/news_favorite" />
+
     <item
         android:id="@+id/delete"
         android:title="@string/news_delete" />
 
     <item
-        android:id="@+id/set_group"
-        android:title="@string/news_set_group" />
-
-    <item
-        android:id="@+id/remove_from_current_group"
-        android:title="@string/news_remove_group" />
+        android:id="@+id/share"
+        android:title="@string/news_share" />
 </menu>

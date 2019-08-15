@@ -72,8 +72,7 @@
             android:layout_height="match_parent"
             android:background="@color/background_gray"
             app:headerLayout="@layout/nav_header"
-            app:itemBackground="@color/background_gray"
-            app:menu="@menu/navigation_menu" />
+            app:itemBackground="@color/background_gray"/>
 
     </LinearLayout>
 
