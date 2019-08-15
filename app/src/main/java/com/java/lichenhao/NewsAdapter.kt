@@ -13,7 +13,6 @@ import android.view.ViewGroup
 import android.widget.ImageView
 import android.widget.PopupMenu
 import android.widget.TextView
-import com.github.kittinunf.fuel.httpGet
 import com.github.kittinunf.result.Result
 
 import com.marshalchen.ultimaterecyclerview.UltimateRecyclerviewViewHolder
@@ -24,12 +23,11 @@ import com.marshalchen.ultimaterecyclerview.UltimateViewAdapter
 val ALL_CATEGORY = arrayOf("", "最新", "收藏", "全部主题", "娱乐", "军事", "教育", "文化", "健康", "财经", "体育", "汽车", "科技", "社会")
 
 class NewsAdapter(private val activity: ListActivity) : UltimateViewAdapter<NewsAdapter.ViewHolder>() {
-    private val allCategory: Array<ArrayList<News>> = Array(ALL_CATEGORY.size + 1) { ArrayList<News>() }
-    private var curCategoryId: Int = 0
+    val allCategory: Array<ArrayList<NewsExt>> = Array(ALL_CATEGORY.size + 1) { ArrayList<NewsExt>() }
+    var curCategoryId: Int = 0
     // 搜索的时候设置prevCategoryId = curCategoryId，搜索结束后设置回来
-    private var prevCategoryId: Int = 0
-
-    private val curCategory
+    var prevCategoryId: Int = 0
+    val curCategory
         inline get() = allCategory[curCategoryId]
 
     override fun onCreateViewHolder(parent: ViewGroup): ViewHolder {
@@ -38,19 +36,34 @@ class NewsAdapter(private val activity: ListActivity) : UltimateViewAdapter<News
     }
 
     override fun onBindViewHolder(holder: ViewHolder, position: Int) {
-        val preview = getItem(position).preview
+        val newsExt = getItem(position)
+        val news = getItem(position).news
         with(holder) {
-            title.text = preview.title
-            content.text = preview.content
-            category.text = resources.getString(R.string.news_preview_category, preview.category)
-            publishTime.text = resources.getString(R.string.news_preview_create_time, preview.publishTime)
-            setImage(preview.image)
+            title.text = news.title
+            content.text = news.content
+            category.text = resources.getString(R.string.news_preview_category, news.category)
+            publishTime.text = resources.getString(R.string.news_preview_create_time, news.publishTime)
+            if (news.imageList.isEmpty()) {
+                image.setImageBitmap(emptyImage)
+            } else {
+                newsExt.downloadImage(0) { result ->
+                    when (result) {
+                        is Result.Failure -> {
+                            Log.e("my", result.getException().toString())
+                        }
+                        is Result.Success -> {
+                            val byteArray = result.get()
+                            image.setImageBitmap(scale(BitmapFactory.decodeByteArray(byteArray, 0, byteArray.size)))
+                        }
+                    }
+                }
+            }
         }
     }
 
     override fun getAdapterItemCount() = curCategory.size
 
-    override fun generateHeaderId(position: Int) = getItem(position).preview.title[0].toLong()
+    override fun generateHeaderId(position: Int) = getItem(position).news.title[0].toLong()
 
     override fun newHeaderHolder(view: View) = ViewHolder(view)
 
@@ -72,7 +85,7 @@ class NewsAdapter(private val activity: ListActivity) : UltimateViewAdapter<News
         curCategoryId = 0
         val keywordSet = keywords.split(' ')
         for (x in allCategory[prevCategoryId]) {
-            for (kw in x.keywords) {
+            for (kw in x.news.keywords) {
                 if (keywordSet.contains(kw.word)) {
                     curCategory.add(x)
                 }
@@ -85,8 +98,8 @@ class NewsAdapter(private val activity: ListActivity) : UltimateViewAdapter<News
         curCategoryId = prevCategoryId
     }
 
-    fun <R : Comparable<R>> sortBy(selector: (News) -> R?) {
-        curCategory.sortBy(selector)
+    inline fun <R : Comparable<R>> sortBy(crossinline selector: (News) -> R?) {
+        curCategory.sortBy { selector(it.news) }
         notifyDataSetChanged()
         // save()
     }
@@ -96,7 +109,14 @@ class NewsAdapter(private val activity: ListActivity) : UltimateViewAdapter<News
         notifyDataSetChanged()
     }
 
-    fun add(news: News) = insertInternal(curCategory, news, curCategory.size)
+    fun add(news: News) {
+        val nulls = ArrayList<ByteArray?>(news.imageList.size) // capacity
+        for (i in 0..news.imageList.size) {
+            nulls.add(null) // 有对应的函数直接实现吗?
+        }
+        val newsExt = NewsExt(news, read = false, favorite = false, imageBitmapList = nulls)
+        insertInternal(curCategory, newsExt, curCategory.size)
+    }
 
     fun remove(position: Int) = removeInternal(curCategory, position)
 
@@ -106,12 +126,12 @@ class NewsAdapter(private val activity: ListActivity) : UltimateViewAdapter<News
 
     inner class ViewHolder(itemView: View) : UltimateRecyclerviewViewHolder<Any>(itemView), View.OnClickListener,
         View.OnLongClickListener {
-        internal val title: TextView = itemView.findViewById(R.id.text_view_title)
-        internal val content: TextView = itemView.findViewById(R.id.text_view_text)
-        internal val category: TextView = itemView.findViewById(R.id.text_view_category)
-        internal val publishTime: TextView = itemView.findViewById(R.id.text_view_create_time)
-        private val image: ImageView = itemView.findViewById(R.id.image_view)
-        private val emptyImage: Bitmap by lazy(LazyThreadSafetyMode.PUBLICATION) {
+        val title: TextView = itemView.findViewById(R.id.text_view_title)
+        val content: TextView = itemView.findViewById(R.id.text_view_text)
+        val category: TextView = itemView.findViewById(R.id.text_view_category)
+        val publishTime: TextView = itemView.findViewById(R.id.text_view_create_time)
+        val image: ImageView = itemView.findViewById(R.id.image_view)
+        val emptyImage: Bitmap by lazy(LazyThreadSafetyMode.PUBLICATION) {
             scale(BitmapFactory.decodeResource(resources, R.drawable.no_image_available))
         }
         private val screenWidth: Int by lazy(LazyThreadSafetyMode.PUBLICATION) {
@@ -120,12 +140,10 @@ class NewsAdapter(private val activity: ListActivity) : UltimateViewAdapter<News
             outMetrics.widthPixels
         }
 
-        private fun scale(old: Bitmap): Bitmap {
+        fun scale(old: Bitmap): Bitmap {
             val resultWidth = screenWidth / 3
             val scale = resultWidth.toFloat() / old.width
-            val matrix = Matrix()
-            matrix.postScale(scale, scale)
-            return Bitmap.createBitmap(old, 0, 0, old.width, old.height, matrix, true)
+            return Bitmap.createScaledBitmap(old, resultWidth, (old.height * scale).toInt(), true)
         }
 
         init {
@@ -138,30 +156,9 @@ class NewsAdapter(private val activity: ListActivity) : UltimateViewAdapter<News
             itemView.setOnLongClickListener(this)
         }
 
-        fun setImage(imagePath: String?) {
-            if (imagePath == null) {
-                this.image.setImageBitmap(emptyImage)
-            } else {
-                Log.e("my", "imagePath = \"$imagePath\"")
-                imagePath.httpGet().response { _, _, result ->
-                    when (result) {
-                        is Result.Failure -> {
-                            val ex = result.getException()
-                            Log.e("my", ex.toString())
-                        }
-                        is Result.Success -> {
-                            val byteArray = result.get()
-                            image.setImageBitmap(scale(BitmapFactory.decodeByteArray(byteArray, 0, byteArray.size)))
-                        }
-                    }
-                }
-            }
-        }
-
         override fun onClick(v: View) {
-            val selectedNews = getItem(adapterPosition)
+            NEWS_ACTIVITY_INTENT_ARG = getItem(adapterPosition)
             val intent = Intent(activity, NewsActivity::class.java)
-                .putExtra(NewsActivity.NEWS_CONTENT, selectedNews)
             activity.startActivity(intent)
         }
 

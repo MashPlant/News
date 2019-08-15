@@ -1,28 +1,21 @@
 package com.java.lichenhao
 
-import kotlinx.android.synthetic.main.activity_list.*
 
-import android.Manifest
 import android.content.Intent
-import android.content.pm.PackageManager
 import android.os.Bundle
 import android.os.Handler
-import android.support.v4.app.ActivityCompat
 import android.support.v7.app.ActionBarDrawerToggle
 import android.support.v7.app.AppCompatActivity
 import android.support.v7.widget.LinearLayoutManager
 import android.support.v7.widget.SearchView
-import android.util.Log
 import android.view.Menu
 import android.view.MenuItem
-
-
 import co.lujun.androidtagview.TagView
+import kotlinx.android.synthetic.main.activity_list.*
 
 class ListActivity : AppCompatActivity() {
     private var layoutManager: LinearLayoutManager? = null
     private lateinit var newsAdapter: NewsAdapter
-//    private lateinit var groupMenu: SubMenu
 
     private lateinit var searchView: SearchView
     private lateinit var searchItem: MenuItem
@@ -32,7 +25,6 @@ class ListActivity : AppCompatActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_list)
-        Log.d("my", "1")
 
         setSupportActionBar(toolbar)
         supportActionBar!!.setDisplayHomeAsUpEnabled(true)
@@ -43,16 +35,13 @@ class ListActivity : AppCompatActivity() {
         newsAdapter = NewsAdapter(this)
         ultimate_recycler_view.setAdapter(newsAdapter)
 //        this.newsAdapter.updateGroupNotesList()
-        Log.d("my", "2")
         this.enableRefresh()
 
         new_news_button.setOnClickListener {
             startActivityForResult(Intent(this@ListActivity, SelectActivity::class.java), 42)
         }
-        Log.d("my", "3")
         setNavigationView()
         initDrawerToggle()
-        Log.d("my", "4")
     }
 
     // options menu
@@ -74,7 +63,7 @@ class ListActivity : AppCompatActivity() {
 
     override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
         if (requestCode == 42) {
-            val response = data!!.getSerializableExtra("SelectActivityResult") as Response
+            val response = data!!.getParcelableExtra("SelectActivityResult") as Response
             for (x in response.data) {
                 newsAdapter.add(x)
             }
@@ -150,6 +139,7 @@ class ListActivity : AppCompatActivity() {
         // close searchView
         searchView.setOnCloseListener {
             tag_group_manager.hide()
+            newsAdapter.finishSearch()
 //            newsAdapter.updateGroupNotesList()
             searching = false
             false
@@ -190,7 +180,6 @@ class ListActivity : AppCompatActivity() {
         newsAdapter.doSearch(query, tags)
     }
 
-    // refresh the list
     private fun enableRefresh() {
         ultimate_recycler_view.setDefaultOnRefreshListener {
             Handler().postDelayed({

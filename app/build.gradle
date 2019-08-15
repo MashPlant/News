@@ -23,6 +23,9 @@ android {
     lintOptions {
         disable 'MissingTranslation'
     }
+    androidExtensions {
+        experimental = true // for @Parcelize
+    }
 }
 
 dependencies {
