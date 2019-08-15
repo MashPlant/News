@@ -43,4 +43,5 @@ dependencies {
     compile 'com.github.kittinunf.fuel:fuel-android:2.2.0'
     implementation 'com.marshalchen.ultimaterecyclerview:library:0.7.3'
     implementation 'co.lujun:androidtagview:1.1.4'
+    implementation 'pl.droidsonroids.gif:android-gif-drawable:1.2.17'
 }

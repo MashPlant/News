@@ -34,24 +34,29 @@ data class News(
     val who: List<Who> //新闻相关人和相关度
 ) : Serializable {
     @Transient
-    private var imageList: List<String>? = null
+    private var _imageList: List<String>? = null
 
-    val preview
-        get(): NewsPreview {
-            if (imageList == null) {
-                imageList = imageString
+    val imageList: List<String>
+        get() {
+            if (_imageList == null) {
+                _imageList = imageString
                     .replace("[", "").replace("]", "")
                     .split(',')
                     .map { it.trim() }
                     .filter { it.isNotEmpty() }
             }
+            return _imageList!!
+        }
+
+    val preview
+        get(): NewsPreview {
             Log.e("my", "image: \"$imageString\" $imageList")
             return NewsPreview(
                 title = this.title,
                 image = if (imageList!!.isNotEmpty()) imageList!![0] else null,
                 content = this.content, // todo: shorten
                 publishTime = this.publishTime,
-                group = null
+                category = this.category
             )
         }
 }
@@ -101,33 +106,5 @@ class NewsPreview(// using public field just for convenience
     val content: String,
     val image: String?,
     val publishTime: String,
-    val group: String?
+    val category: String
 ) : Serializable
-
-//fun main() {
-//    val query = Query(
-//        size = 15,
-//        startDate = GregorianCalendar(2019, 7 - 1, 1).time,
-//        endDate = GregorianCalendar(2019, 7 - 1, 3).time,
-//        words = "特朗普",
-//        categories = "科技"
-//    )
-//    var url = BASE_URL
-//    query.size?.let { url += "size=" + URLEncoder.encode(it.toString(), CHARSET) + "&" }
-//    query.startDate?.let { url += "startDate=" + URLEncoder.encode(DATE_FORMAT.format(it), CHARSET) + "&" }
-//    query.endDate?.let { url += "endDate=" + URLEncoder.encode(DATE_FORMAT.format(it), CHARSET) + "&" }
-//    query.words?.let { url += "words=" + URLEncoder.encode(it, CHARSET) + "&" }
-//    query.categories?.let { url += "categories=" + URLEncoder.encode(it, CHARSET) + "&" }
-//    url.httpGet().responseObject<Response> { _, _, result ->
-//        when (result) {
-//            is Result.Failure -> {
-//                val ex = result.getException()
-//                println(ex)
-//            }
-//            is Result.Success -> {
-//                val data = result.get()
-//                println(data)
-//            }
-//        }
-//    }.join()
-//}

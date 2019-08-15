@@ -34,7 +34,7 @@
             android:singleLine="true" />
 
         <TextView
-            android:id="@+id/text_view_group"
+            android:id="@+id/text_view_category"
             android:layout_width="match_parent"
             android:layout_height="match_parent"
             android:singleLine="true" />

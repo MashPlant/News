@@ -13,8 +13,6 @@ import android.view.ViewGroup
 import android.widget.ImageView
 import android.widget.PopupMenu
 import android.widget.TextView
-import com.github.kittinunf.fuel.Fuel
-import com.github.kittinunf.fuel.httpDownload
 import com.github.kittinunf.fuel.httpGet
 import com.github.kittinunf.result.Result
 
@@ -42,10 +40,10 @@ class NewsAdapter(private val activity: ListActivity) : UltimateViewAdapter<News
     override fun onBindViewHolder(holder: ViewHolder, position: Int) {
         val preview = getItem(position).preview
         with(holder) {
-            setTitle(preview.title)
-            setText(preview.content)
-            setCreateDate(preview.publishTime)
-            setGroup(preview.group)
+            title.text = preview.title
+            content.text = preview.content
+            category.text = resources.getString(R.string.news_preview_category, preview.category)
+            publishTime.text = resources.getString(R.string.news_preview_create_time, preview.publishTime)
             setImage(preview.image)
         }
     }
@@ -108,88 +106,41 @@ class NewsAdapter(private val activity: ListActivity) : UltimateViewAdapter<News
 
     inner class ViewHolder(itemView: View) : UltimateRecyclerviewViewHolder<Any>(itemView), View.OnClickListener,
         View.OnLongClickListener {
-        private val title: TextView
-        private val text: TextView
-        private val group: TextView
-        private val publishTime: TextView
-        private val image: ImageView
-
-        private var screenWidth = -1
-        private var emptyImage: Bitmap? = null
-
-        private fun getScreenWidth(): Int {
-            if (screenWidth != -1)
-                return screenWidth
+        internal val title: TextView = itemView.findViewById(R.id.text_view_title)
+        internal val content: TextView = itemView.findViewById(R.id.text_view_text)
+        internal val category: TextView = itemView.findViewById(R.id.text_view_category)
+        internal val publishTime: TextView = itemView.findViewById(R.id.text_view_create_time)
+        private val image: ImageView = itemView.findViewById(R.id.image_view)
+        private val emptyImage: Bitmap by lazy(LazyThreadSafetyMode.PUBLICATION) {
+            scale(BitmapFactory.decodeResource(resources, R.drawable.no_image_available))
+        }
+        private val screenWidth: Int by lazy(LazyThreadSafetyMode.PUBLICATION) {
             val outMetrics = DisplayMetrics()
             activity.windowManager.defaultDisplay.getMetrics(outMetrics)
-            screenWidth = outMetrics.widthPixels
-            return screenWidth
+            outMetrics.widthPixels
         }
 
-        private fun getEmptyImage(): Bitmap? {
-            if (emptyImage != null)
-                return emptyImage
-            val old = BitmapFactory.decodeResource(resources, R.drawable.no_image_available)
-            val width = old.width
-            val height = old.height
-            val scale = getScreenWidth().toFloat() / 3 / width
+        private fun scale(old: Bitmap): Bitmap {
+            val resultWidth = screenWidth / 3
+            val scale = resultWidth.toFloat() / old.width
             val matrix = Matrix()
             matrix.postScale(scale, scale)
-            emptyImage = Bitmap.createBitmap(old, 0, 0, width, height, matrix, true)
-            return emptyImage
+            return Bitmap.createBitmap(old, 0, 0, old.height, old.height, matrix, true)
         }
 
         init {
-            val textWidth = getScreenWidth() / 3 * 2
-            // title & text
-            this.title = itemView.findViewById(R.id.text_view_title)
-            this.title.width = textWidth
-            this.text = itemView.findViewById(R.id.text_view_text)
-            this.text.width = textWidth
-            // group the news belongs to
-            this.group = itemView.findViewById(R.id.text_view_group)
-            this.group.width = textWidth
-            // create & modify time
-            this.publishTime = itemView.findViewById(R.id.text_view_create_time)
-            this.publishTime.width = textWidth
-            // image
-            this.image = itemView.findViewById(R.id.image_view)
-
-            // click listener
+            val textWidth = screenWidth / 3 * 2
+            title.width = textWidth
+            content.width = textWidth
+            category.width = textWidth
+            publishTime.width = textWidth
             itemView.setOnClickListener(this)
             itemView.setOnLongClickListener(this)
         }
 
-        fun setTitle(title: String) {
-            if (title.isEmpty())
-                this.title.text = resources.getString(R.string.news_preview_title)
-            else
-                this.title.text = title
-        }
-
-        fun setText(text: String) {
-            if (text.isEmpty())
-                this.text.text = resources.getString(R.string.news_preview_text)
-            else
-                this.text.text = text
-        }
-
-        fun setGroup(group: String?) {
-            if (group == null) {
-                this.group.visibility = View.GONE
-            } else {
-                this.group.text = resources.getString(R.string.news_preview_group, group)
-                this.group.visibility = View.VISIBLE
-            }
-        }
-
-        fun setCreateDate(date: String) {
-            this.publishTime.text = resources.getString(R.string.news_preview_create_time, date)
-        }
-
         fun setImage(imagePath: String?) {
             if (imagePath == null) {
-                this.image.setImageBitmap(this.getEmptyImage())    //clear the previous image
+                this.image.setImageBitmap(emptyImage)
             } else {
                 Log.e("my", "imagePath = \"$imagePath\"")
                 imagePath.httpGet().response { _, _, result ->
@@ -200,12 +151,7 @@ class NewsAdapter(private val activity: ListActivity) : UltimateViewAdapter<News
                         }
                         is Result.Success -> {
                             val byteArray = result.get()
-                            val old = BitmapFactory.decodeByteArray(byteArray, 0, byteArray.size)
-                            val resultWidth = getScreenWidth() / 3
-                            val scale = resultWidth.toFloat() / old.width
-                            val matrix = Matrix()
-                            matrix.postScale(scale, scale)
-                            image.setImageBitmap(Bitmap.createBitmap(old, 0, 0, old.height, old.height, matrix, true))
+                            image.setImageBitmap(scale(BitmapFactory.decodeByteArray(byteArray, 0, byteArray.size)))
                         }
                     }
                 }
@@ -215,7 +161,7 @@ class NewsAdapter(private val activity: ListActivity) : UltimateViewAdapter<News
         override fun onClick(v: View) {
             val selectedNews = getItem(adapterPosition)
             val intent = Intent(activity, NewsActivity::class.java)
-            intent.putExtra(NewsActivity.INITIAL_NOTE, selectedNews)
+                .putExtra(NewsActivity.NEWS_CONTENT, selectedNews)
             activity.startActivity(intent)
         }
 
@@ -223,15 +169,12 @@ class NewsAdapter(private val activity: ListActivity) : UltimateViewAdapter<News
             val menu = PopupMenu(activity, v)
             menu.menuInflater.inflate(R.menu.list_item_options, menu.menu)
             menu.setOnMenuItemClickListener { item ->
-                val selectedNews = getItem(adapterPosition)
                 when (item.itemId) {
+                    R.id.favorite -> {
+                    } // todo
                     R.id.delete -> remove(adapterPosition)
-
-                    R.id.preview -> activity.startActivity(
-                        Intent(activity, NewsActivity::class.java)
-                            .putExtra(NewsActivity.VIEW_ONLY, true)
-                            .putExtra(NewsActivity.INITIAL_NOTE, selectedNews)
-                    )
+                    R.id.share -> {
+                    } // todo
                 }
                 true
             }

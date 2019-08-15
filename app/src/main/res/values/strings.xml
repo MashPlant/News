@@ -2,10 +2,10 @@
     <string name="app_name">News</string>
 
     <!--List-->
-    <string name="list_title">Notes</string>
-    <string name="list_search">Search</string>
+    <string name="list_title">新闻</string>
+    <string name="list_search">搜索</string>
     <string name="list_search_hint">"搜索新闻关键字"</string>
-    <string name="list_sort">Sort</string>
+    <string name="list_sort">排序</string>
     <string name="list_sort_title">按标题排序</string>
     <string name="list_sort_publish_time">按发布时间排序</string>
     <string name="list_clear">清空本页</string>
@@ -13,33 +13,17 @@
     <!--Navigation-->
     <string name="groups_title">Groups</string>
     <string name="group_all_news">All News</string>
-    <string name="groups_manage_title">Manage Groups</string>
     <string name="drawer_open">Open</string>
     <string name="drawer_close">Close</string>
 
-    <!--Editor-->
-    <string name="editor_title">Editor</string>
-    <string name="editor_title_capacity">%d/%d</string>
-    <string name="editor_markdown">Markdown</string>
-    <string name="editor_plain_text">Plain Text</string>
-
     <!--News-->
-    <string name="news_preview">Preview</string>
-    <string name="news_delete">Delete</string>
-    <string name="news_set_group">Set Group</string>
-    <string name="news_remove_group">Remove Group</string>
-
-    <string name="news_open">Open</string>
-    <string name="news_save">Save</string>
-    <string name="news_share">Share</string>
-    <string name="news_export">Export</string>
+    <string name="news_favorite">收藏</string>
+    <string name="news_delete">删除</string>
+    <string name="news_share">分享</string>
 
     <!--News Preview-->
-    <string name="news_preview_title">NO TITLE</string>
-    <string name="news_preview_text">NO PREVIEW TEXT</string>
-    <string name="news_preview_group">Group: %s</string>
-    <string name="news_preview_create_time">Created:\u0020\u0020 %s</string>
-    <string name="news_preview_modify_time">Modified: %s</string>
+    <string name="news_preview_category">类别: %s</string>
+    <string name="news_preview_create_time">发布日期:\u0020\u0020 %s</string>
 
     <!--Shortcut-->
     <string name="shortcut_search_disable">搜索不可用</string>

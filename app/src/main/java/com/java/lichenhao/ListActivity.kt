@@ -74,7 +74,6 @@ class ListActivity : AppCompatActivity() {
 
     override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
         if (requestCode == 42) {
-            Log.e("my", data!!.extras.toString())
             val response = data!!.getSerializableExtra("SelectActivityResult") as Response
             for (x in response.data) {
                 newsAdapter.add(x)
