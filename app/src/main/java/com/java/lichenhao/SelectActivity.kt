@@ -1,5 +1,6 @@
 package com.java.lichenhao
 
+import android.app.DatePickerDialog
 import android.net.sip.SipSession
 import kotlinx.android.synthetic.main.content_select.*
 
@@ -26,8 +27,8 @@ val DATE_FORMAT = SimpleDateFormat("yyyy-MM-dd")
 
 data class Query(
     val size: Int? = null,
-    val startDate: Date? = null,
-    val endDate: Date? = null,
+    val startDate: String? = null,
+    val endDate: String? = null,
     val words: String? = null,
     val categories: String? = null
 )
@@ -36,18 +37,112 @@ class SelectActivity : AppCompatActivity() {
 
     val query: Query? = null
 
+    fun setStartDate() {
+        val c = Calendar.getInstance()
+        val year = c.get(Calendar.YEAR) - 1
+        val month = c.get(Calendar.MONTH) + 1
+        val day = c.get(Calendar.DAY_OF_MONTH)
+
+//        Log.e("year", "" + year)
+//        Log.e("month", "" + month)
+//        Log.e("day", "" + day)
+
+        val y = year.toString()
+        var m = month.toString()
+        var d = day.toString()
+        if (month < 10) {
+            m = "0" + m
+        }
+        if (day < 10) {
+            d = "0" + d
+        }
+        startDate.setText(y + "-" + m + "-" + d)
+
+        startDate.setOnClickListener {
+            var dateList: List<String> = startDate.getText().split('-')
+            val dpd = DatePickerDialog(this, DatePickerDialog.OnDateSetListener { view, year, monthOfYear, dayOfMonth ->
+
+                // Display Selected date in textbox
+                val y = year.toString()
+                var m = (monthOfYear + 1).toString()
+                var d = dayOfMonth.toString()
+
+                if (monthOfYear < 10) {
+                    m = "0" + m
+                }
+                if (dayOfMonth < 10) {
+                    d = "0" + d
+                }
+                year.toString()
+                startDate.setText(y + "-" + m + "-" + d)
+            }, dateList[0].toInt(), dateList[1].toInt() - 1, dateList[2].toInt())
+            dpd.show()
+        }
+    }
+
+    fun setEndDate() {
+        val c = Calendar.getInstance()
+        val year = c.get(Calendar.YEAR)
+        val month = c.get(Calendar.MONTH) + 1
+        val day = c.get(Calendar.DAY_OF_MONTH)
+
+        val y = year.toString()
+        var m = month.toString()
+        var d = day.toString()
+        if (month < 10) {
+            m = "0" + m
+        }
+        if (day < 10) {
+            d = "0" + d
+        }
+        endDate.setText(y + "-" + m + "-" + d)
+
+        endDate.setOnClickListener {
+            var dateList: List<String> = endDate.getText().split('-')
+            val dpd = DatePickerDialog(this, DatePickerDialog.OnDateSetListener { view, year, monthOfYear, dayOfMonth ->
+
+                // Display Selected date in textbox
+                val y = year.toString()
+                var m = (monthOfYear + 1).toString()
+                var d = dayOfMonth.toString()
+
+                Log.e("year", y)
+                Log.e("month", m)
+                Log.e("day", d)
+
+                if (monthOfYear < 10) {
+                    m = "0" + m
+                }
+                if (dayOfMonth < 10) {
+                    d = "0" + d
+                }
+                year.toString()
+                endDate.setText(y + "-" + m + "-" + d)
+            }, dateList[0].toInt(), dateList[1].toInt() - 1, dateList[2].toInt())
+            dpd.show()
+        }
+    }
+
+    fun setMoreOption() {
+        moreOption.setOnClickListener {
+            if (searchOption.visibility == View.VISIBLE) {
+                searchOption.visibility = View.GONE
+                moreOption.setText("更多选项")
+            } else {
+                searchOption.visibility = View.VISIBLE
+                moreOption.setText("收起")
+            }
+
+        }
+    }
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.content_select)
 
-        moreOption.setOnClickListener {
-            if (searchOption.visibility == View.VISIBLE) {
-                searchOption.visibility = View.GONE
-            } else {
-                searchOption.visibility = View.VISIBLE
-            }
-
-        }
+        setMoreOption()
+        setStartDate()
+        setEndDate()
 
         searchNews.setOnQueryTextListener(object : SearchView.OnQueryTextListener {
 
@@ -55,20 +150,23 @@ class SelectActivity : AppCompatActivity() {
                 return false
             }
 
-            override fun onQueryTextSubmit(query: String): Boolean {
-                val query = Query(
+            override fun onQueryTextSubmit(q: String): Boolean {
+                var query = Query(
                     size = 15,
-                    startDate = GregorianCalendar(2019, 7 - 1, 1).time,
-                    endDate = GregorianCalendar(2019, 7 - 1, 3).time,
-                    words = "特朗普",
-                    categories = "科技"
+                    startDate = startDate.getText().toString(),
+                    endDate = endDate.getText().toString(),
+                    words = q,
+                    categories = categories.getSelectedItem().toString()
                 )
                 var url = BASE_URL
                 query.size?.let { url += "size=" + URLEncoder.encode(it.toString(), CHARSET) + "&" }
-                query.startDate?.let { url += "startDate=" + URLEncoder.encode(DATE_FORMAT.format(it), CHARSET) + "&" }
-                query.endDate?.let { url += "endDate=" + URLEncoder.encode(DATE_FORMAT.format(it), CHARSET) + "&" }
+                url += "startDate=" + URLEncoder.encode(query.startDate, CHARSET) + "&"
+                url += "endDate=" + URLEncoder.encode(query.endDate, CHARSET) + "&"
                 query.words?.let { url += "words=" + URLEncoder.encode(it, CHARSET) + "&" }
-                query.categories?.let { url += "categories=" + URLEncoder.encode(it, CHARSET) + "&" }
+                if (!query.categories.equals("全部")) {
+                    url += "categories=" + URLEncoder.encode(query.categories, CHARSET) + "&"
+                }
+                Log.e("URL", url)
                 url.httpGet().responseObject<Response> { _, _, result ->
                     Log.e("my", "enter responseObject")
                     when (result) {
