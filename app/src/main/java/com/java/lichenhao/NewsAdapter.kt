@@ -125,7 +125,7 @@ class NewsAdapter(private val activity: ListActivity) : UltimateViewAdapter<News
             val scale = resultWidth.toFloat() / old.width
             val matrix = Matrix()
             matrix.postScale(scale, scale)
-            return Bitmap.createBitmap(old, 0, 0, old.height, old.height, matrix, true)
+            return Bitmap.createBitmap(old, 0, 0, old.width, old.height, matrix, true)
         }
 
         init {

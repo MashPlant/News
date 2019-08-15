@@ -14,8 +14,10 @@ import android.util.Log
 import android.view.Menu
 import android.view.MenuItem
 import android.view.View.GONE
+import android.widget.ImageView
 import com.github.kittinunf.fuel.httpGet
 import com.github.kittinunf.result.Result
+import kotlinx.android.synthetic.main.activity_news.*
 
 import java.util.Objects
 
@@ -37,18 +39,11 @@ class NewsActivity : AppCompatActivity() {
         return super.onOptionsItemSelected(item)
     }
 
-    private val screenWidth: Int by lazy(LazyThreadSafetyMode.PUBLICATION) {
-        val outMetrics = DisplayMetrics()
-        windowManager.defaultDisplay.getMetrics(outMetrics)
-        outMetrics.widthPixels
-    }
-
-    private fun scale(old: Bitmap): Bitmap {
-        val resultWidth = screenWidth * 4 / 5
-        val scale = resultWidth.toFloat() / old.width
+    private fun scale(old: Bitmap, imgWidth: Int): Bitmap {
+        val scale = imgWidth.toFloat() / old.width
         val matrix = Matrix()
         matrix.postScale(scale, scale)
-        return Bitmap.createBitmap(old, 0, 0, old.height, old.height, matrix, true)
+        return Bitmap.createBitmap(old, 0, 0, old.width, old.height, matrix, true)
     }
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -72,7 +67,10 @@ class NewsActivity : AppCompatActivity() {
                     }
                     is Result.Success -> {
                         val byteArray = result.get()
-                        news_image.setImageBitmap(scale(BitmapFactory.decodeByteArray(byteArray, 0, byteArray.size)))
+//                        news_image.scaleType = ImageView.ScaleType.CENTER_CROP
+                        news_image.setImageBitmap(
+                            scale(BitmapFactory.decodeByteArray(byteArray, 0, byteArray.size), news_image.width)
+                        )
                     }
                 }
             }
