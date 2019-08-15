@@ -29,21 +29,17 @@ data class NewsExt(
     val news: News,
     val read: Boolean, // 已读
     val favorite: Boolean,
-    val imageBitmapList: ArrayList<ByteArray?> // 下载的图片具体内容，下标和news.imageList一一对应
+    val imageBitmapList: ArrayList<Bitmap?> // 下载的图片具体内容，下标和news.imageList一一对应
 ) : Parcelable {
-    inline fun downloadImage(which: Int, crossinline handler: (Result<ByteArray, FuelError>) -> Unit) {
-        // 处于某些未知的原因，这里不能直接利用之前的缓存
-        // 否则NewsActivity中调用Bitmap.createScaledBitmap会返回null，然而文档里完全没有提到会有这种事，类型系统中也标注了Bitmap.createScaledBitmap不会返回null
-        // 显然Java世界里也是有UB的，所有文档没有写出来的行为都是UB，在这一点上并没有比C++好
+    inline fun downloadImage(which: Int, crossinline handler: (Result<Bitmap, FuelError>) -> Unit) {
         imageBitmapList[which]?.let {
-            handler(Result.success(it.copyOf()))
+            handler(Result.success(it))
             return
         }
         news.imageList[which].httpGet().response { _, _, result ->
-            when (result) {
-                is Result.Success -> imageBitmapList[which] = result.get().copyOf()
-            }
-            handler(result)
+            result.map { BitmapFactory.decodeByteArray(it, 0, it.size) }
+                .also { handler(it) }
+                .success { imageBitmapList[which] = it }
         }
     }
 }

@@ -52,8 +52,7 @@ class NewsAdapter(private val activity: ListActivity) : UltimateViewAdapter<News
                             Log.e("my", result.getException().toString())
                         }
                         is Result.Success -> {
-                            val byteArray = result.get()
-                            image.setImageBitmap(scale(BitmapFactory.decodeByteArray(byteArray, 0, byteArray.size)))
+                            image.setImageBitmap(scale(result.get()))
                         }
                     }
                 }
@@ -110,7 +109,7 @@ class NewsAdapter(private val activity: ListActivity) : UltimateViewAdapter<News
     }
 
     fun add(news: News) {
-        val nulls = ArrayList<ByteArray?>(news.imageList.size) // capacity
+        val nulls = ArrayList<Bitmap?>(news.imageList.size) // capacity
         for (i in 0..news.imageList.size) {
             nulls.add(null) // 有对应的函数直接实现吗?
         }
