@@ -3,7 +3,6 @@ package com.java.lichenhao
 import android.graphics.Bitmap
 import android.graphics.BitmapFactory
 import android.os.Parcelable
-import androidx.versionedparcelable.ParcelField
 import com.github.kittinunf.fuel.core.FuelError
 import com.github.kittinunf.fuel.httpGet
 import com.github.kittinunf.result.Result
@@ -27,22 +26,28 @@ data class Response(
 @Parcelize
 data class NewsExt(
     val news: News,
-    val read: Boolean, // 已读
-    val favorite: Boolean,
-    val imageBitmapList: ArrayList<Bitmap?> // 下载的图片具体内容，下标和news.imageList一一对应
+    var read: Boolean, // 已读
+    var favorite: Boolean,
+    val imageBitmapList: ArrayList<ByteArray?> // 下载的图片具体内容，下标和news.imageList一一对应
 ) : Parcelable {
     inline fun downloadImage(which: Int, crossinline handler: (Result<Bitmap, FuelError>) -> Unit) {
         imageBitmapList[which]?.let {
-            handler(Result.success(it))
+            handler(Result.success(BitmapFactory.decodeByteArray(it, 0, it.size)))
             return
         }
         news.imageList[which].httpGet().response { _, _, result ->
-            result.map { BitmapFactory.decodeByteArray(it, 0, it.size) }
-                .also { handler(it) }
-                .success { imageBitmapList[which] = it }
+            result.map { BitmapFactory.decodeByteArray(it, 0, it.size) }.apply(handler)
+            result.success { imageBitmapList[which] = it }
         }
     }
+
+    companion object
 }
+
+// https://stackoverflow.com/questions/51799353/how-to-use-parcel-readtypedlist-along-with-parcelize-from-kotlin-android-exte
+// 看起来还是没有更好的方法?
+val NewsExt.Companion.CREATOR
+    inline get() = ParcelHelper.NEWS_EXT_CREATOR
 
 @Parcelize
 data class News(
@@ -95,14 +100,14 @@ data class When(
 @Parcelize
 data class Person(
     val count: Int,
-    val linkedURL: String,
+    val linkedURL: String?,
     val mention: String
 ) : Parcelable
 
 @Parcelize
 data class Organization(
     val count: Int,
-    val linkedURL: String,
+    val linkedURL: String?,
     val mention: String
 ) : Parcelable
 
@@ -110,7 +115,7 @@ data class Organization(
 data class Location(
     val count: Int,
     val lat: Float,
-    val linkedURL: String,
+    val linkedURL: String?,
     val lng: Float,
     val mention: String
 ) : Parcelable

@@ -1,9 +1,11 @@
 package com.java.lichenhao
 
+import android.content.Context.MODE_PRIVATE
 import android.content.Intent
 import android.graphics.Bitmap
 import android.graphics.BitmapFactory
 import android.graphics.Matrix
+import android.os.Parcel
 import android.support.v7.widget.RecyclerView
 import android.util.DisplayMetrics
 import android.util.Log
@@ -17,16 +19,27 @@ import com.github.kittinunf.result.Result
 
 import com.marshalchen.ultimaterecyclerview.UltimateRecyclerviewViewHolder
 import com.marshalchen.ultimaterecyclerview.UltimateViewAdapter
+import java.io.File
 
-// 最新和收藏两个界面下不能有加号
-// 最新和搜索结果不需要保存，搜索结果是下标0，不显示出来
-val ALL_CATEGORY = arrayOf("", "最新", "收藏", "全部主题", "娱乐", "军事", "教育", "文化", "健康", "财经", "体育", "汽车", "科技", "社会")
+// 这四个下标在ALL_CATEGORY中是特殊的
+// "搜索"，和"收藏"两个界面下不能有加号
+// "搜索"不在侧边栏显示
+// 向其他分类下添加内容时，都要向"全部"添加
+// 保存的时候只用保存"全部"，用它可以恢复所有的信息
+const val SEARCH_IDX = 0
+const val FAVORITE_IDX = 1
+const val ALL_IDX = 2
+
+val ALL_CATEGORY = arrayOf("", "收藏", "全部", "娱乐", "军事", "教育", "文化", "健康", "财经", "体育", "汽车", "科技", "社会")
+
+const val FILE_NAME = "News"
 
 class NewsAdapter(private val activity: ListActivity) : UltimateViewAdapter<NewsAdapter.ViewHolder>() {
     val allCategory: Array<ArrayList<NewsExt>> = Array(ALL_CATEGORY.size + 1) { ArrayList<NewsExt>() }
-    var curCategoryId: Int = 0
+    var curCategoryId: Int = ALL_IDX
+        private set
     // 搜索的时候设置prevCategoryId = curCategoryId，搜索结束后设置回来
-    var prevCategoryId: Int = 0
+    private var prevCategoryId: Int = 0
     val curCategory
         inline get() = allCategory[curCategoryId]
 
@@ -105,21 +118,82 @@ class NewsAdapter(private val activity: ListActivity) : UltimateViewAdapter<News
 
     fun setCurCategory(name: CharSequence) {
         curCategoryId = ALL_CATEGORY.indexOf(name)
+        allCategory[SEARCH_IDX].clear()
         notifyDataSetChanged()
     }
 
-    fun add(news: News) {
-        val nulls = ArrayList<Bitmap?>(news.imageList.size) // capacity
-        for (i in 0..news.imageList.size) {
-            nulls.add(null) // 有对应的函数直接实现吗?
-        }
-        val newsExt = NewsExt(news, read = false, favorite = false, imageBitmapList = nulls)
-        insertInternal(curCategory, newsExt, curCategory.size)
+    // 只会保存"全部"
+    private fun storeToFile() {
+        val parcel = Parcel.obtain()
+        parcel.writeTypedList(allCategory[ALL_IDX])
+        activity.openFileOutput(FILE_NAME, MODE_PRIVATE).use { it.write(parcel.marshall()) }
+        parcel.recycle()
     }
 
-    fun remove(position: Int) = removeInternal(curCategory, position)
+    fun loadFromFile() {
+        for (x in allCategory) {
+            x.clear()
+        }
+        val bytes = activity.openFileInput(FILE_NAME).use { it.readBytes() }
+        val parcel = Parcel.obtain()
+        parcel.unmarshall(bytes, 0, bytes.size)
+        parcel.setDataPosition(0)
+        parcel.readTypedList(allCategory[ALL_IDX], NewsExt.CREATOR)
+        parcel.recycle()
+        for (x in allCategory[ALL_IDX]) {
+            val cat = ALL_CATEGORY.indexOf(x.news.category)
+            insertInternal(allCategory[cat], x, allCategory[cat].size)
+            if (x.favorite) {
+                insertInternal(allCategory[FAVORITE_IDX], x, allCategory[FAVORITE_IDX].size)
+            }
+        }
+    }
 
-    fun clear() = clearInternal(curCategory)
+    fun addAll(newsList: List<News>) {
+        for (news in newsList) {
+            val cat = ALL_CATEGORY.indexOf(news.category)
+            if (cat != -1) {
+                val nulls = ArrayList<ByteArray?>(news.imageList.size) // capacity
+                for (i in 0..news.imageList.size) {
+                    nulls.add(null) // 有对应的函数直接实现吗?
+                }
+                val newsExt = NewsExt(news, read = false, favorite = false, imageBitmapList = nulls)
+                insertInternal(allCategory[cat], newsExt, allCategory[cat].size)
+                if (cat != ALL_IDX) {
+                    insertInternal(allCategory[ALL_IDX], newsExt, allCategory[ALL_IDX].size)
+                }
+            }
+        }
+        storeToFile()
+    }
+
+    fun remove(position: Int) {
+        val news = getItem(position)
+        when (curCategoryId) {
+            SEARCH_IDX -> {
+                // no-op
+            }
+            FAVORITE_IDX -> {
+                news.favorite = false
+            }
+            ALL_IDX -> {
+                val cat = ALL_CATEGORY.indexOf(news.news.category)
+                val position1 = allCategory[cat].indexOf(news)
+                removeInternal(allCategory[cat], position1)
+            }
+            else -> {
+                val position1 = allCategory[ALL_IDX].indexOf(news)
+                removeInternal(allCategory[ALL_IDX], position1)
+            }
+        }
+        removeInternal(curCategory, position)
+        storeToFile()
+    }
+
+    fun clear() {
+        clearInternal(curCategory)
+        storeToFile()
+    }
 
     fun getItem(position: Int) = curCategory[if (hasHeaderView()) position - 1 else position]
 
@@ -156,7 +230,10 @@ class NewsAdapter(private val activity: ListActivity) : UltimateViewAdapter<News
         }
 
         override fun onClick(v: View) {
-            NEWS_ACTIVITY_INTENT_ARG = getItem(adapterPosition)
+            val selected = getItem(adapterPosition)
+            NEWS_ACTIVITY_INTENT_ARG = selected
+            selected.read = true
+            storeToFile()
             val intent = Intent(activity, NewsActivity::class.java)
             activity.startActivity(intent)
         }
@@ -167,7 +244,13 @@ class NewsAdapter(private val activity: ListActivity) : UltimateViewAdapter<News
             menu.setOnMenuItemClickListener { item ->
                 when (item.itemId) {
                     R.id.favorite -> {
-                    } // todo
+                        val news = curCategory[adapterPosition]
+                        if (!news.favorite) {
+                            allCategory[FAVORITE_IDX].add(news)
+                            news.favorite = true
+                            storeToFile()
+                        }
+                    }
                     R.id.delete -> remove(adapterPosition)
                     R.id.share -> {
                     } // todo

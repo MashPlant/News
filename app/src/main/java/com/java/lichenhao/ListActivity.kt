@@ -8,10 +8,12 @@ import android.support.v7.app.ActionBarDrawerToggle
 import android.support.v7.app.AppCompatActivity
 import android.support.v7.widget.LinearLayoutManager
 import android.support.v7.widget.SearchView
+import android.util.Log
 import android.view.Menu
 import android.view.MenuItem
 import co.lujun.androidtagview.TagView
 import kotlinx.android.synthetic.main.activity_list.*
+import java.io.IOException
 
 class ListActivity : AppCompatActivity() {
     private var layoutManager: LinearLayoutManager? = null
@@ -33,6 +35,12 @@ class ListActivity : AppCompatActivity() {
         layoutManager = LinearLayoutManager(this)
         ultimate_recycler_view.layoutManager = layoutManager
         newsAdapter = NewsAdapter(this)
+        try {
+            newsAdapter.loadFromFile()
+        } catch (e: IOException) {
+            // 正常，应该是第一次创建文件不存在
+            Log.e("fuck", "newsAdapter.loadFromFile failed: $e")
+        }
         ultimate_recycler_view.setAdapter(newsAdapter)
 //        this.newsAdapter.updateGroupNotesList()
         this.enableRefresh()
@@ -64,9 +72,7 @@ class ListActivity : AppCompatActivity() {
     override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
         if (requestCode == 42) {
             val response = data!!.getParcelableExtra("SelectActivityResult") as Response
-            for (x in response.data) {
-                newsAdapter.add(x)
-            }
+            newsAdapter.addAll(response.data)
         }
     }
 
@@ -99,8 +105,7 @@ class ListActivity : AppCompatActivity() {
         drawerToggle.syncState()
     }
 
-
-    // navigation view
+    // 侧边栏
     private fun setNavigationView() {
         val menu = nav_view.menu
         nav_view.itemIconTintList = null
@@ -121,8 +126,9 @@ class ListActivity : AppCompatActivity() {
 //            newsAdapter.updateGroupNotesList()
             searching = false
             searchView.onActionViewCollapsed()
-        } else
+        } else { // 会退出该页面
             super.onBackPressed()
+        }
     }
 
     // search
