@@ -13,7 +13,7 @@
         android:checkable="true"
         android:icon="@drawable/baseline_sort_white_48dp"
         android:title="@string/list_sort"
-        app:showAsAction="ifRoom">
+        app:showAsAction="always">
         <menu>
             <group
                 android:id="@+id/sort_options"
@@ -29,7 +29,10 @@
     </item>
 
     <item
-        android:id="@+id/clear"
-        android:title="@string/list_clear" />
+            android:id="@+id/nightMode"
+            android:title="夜间模式（关）"/>
+    <item
+            android:id="@+id/clear"
+            android:title="@string/list_clear" />
 
 </menu>

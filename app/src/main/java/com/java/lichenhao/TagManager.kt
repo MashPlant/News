@@ -34,10 +34,10 @@ class TagManager @JvmOverloads constructor(context: Context, attrs: AttributeSet
 
     private fun setCheckedTagView(position: Int, checkedState: Boolean) {
         val tagView = getTagView(position)
-        if (checkedState)
-            tagView.setTagBorderColor(resources.getColor(R.color.checked_color, null))
-        else
-            tagView.setTagBorderColor(resources.getColor(R.color.unchecked_color, null))
+//        if (checkedState)
+//            tagView.setTagBorderColor(resources.getColor(R.color.checked_color, null))
+//        else
+//            tagView.setTagBorderColor(resources.getColor(R.color.unchecked_color, null))
         tagView.invalidate()
     }
 

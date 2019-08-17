@@ -8,6 +8,7 @@ import kotlinx.android.synthetic.main.content_news.*
 import android.os.Bundle
 import android.support.v7.app.ActionBar
 import android.support.v7.app.AppCompatActivity
+import android.support.v7.app.AppCompatDelegate
 import android.text.method.ScrollingMovementMethod
 import android.util.Log
 import android.view.Menu
@@ -41,6 +42,9 @@ class NewsActivity : AppCompatActivity() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+
+        // AppCompatDelegate.setDefaultNightMode(AppCompatDelegate.MODE_NIGHT_YES)
+
         setContentView(R.layout.activity_news)
         setSupportActionBar(findViewById(R.id.toolbar))
         Objects.requireNonNull<ActionBar>(supportActionBar).setDisplayHomeAsUpEnabled(true)

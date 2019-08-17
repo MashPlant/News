@@ -1,16 +1,16 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
     <string-array name="categories">
-        <item>全部</item>
-        <item>娱乐</item>
-        <item>军事 </item>
-        <item>教育</item>
-        <item>文化</item>
-        <item>健康</item>
-        <item>财经</item>
-        <item>体育</item>
-        <item>汽车</item>
-        <item>科技</item>
-        <item>社会</item>
+        <item> 全部 </item>
+        <item> 娱乐 </item>
+        <item> 军事  </item>
+        <item> 教育 </item>
+        <item> 文化 </item>
+        <item> 健康 </item>
+        <item> 财经 </item>
+        <item> 体育 </item>
+        <item> 汽车 </item>
+        <item> 科技 </item>
+        <item> 社会 </item>
     </string-array>
 </resources>

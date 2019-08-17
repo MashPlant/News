@@ -10,16 +10,12 @@
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="match_parent"
-        android:background="@color/background_gray"
         android:orientation="vertical">
 
         <android.support.v7.widget.Toolbar
             android:id="@+id/toolbar"
             android:layout_width="match_parent"
             android:layout_height="?attr/actionBarSize"
-            android:background="@color/colorPrimary"
-            app:popupTheme="@style/ThemeOverlay.AppCompat.Light"
-            app:theme="@style/ThemeOverlay.AppCompat.Dark.ActionBar"
             app:title="@string/list_title" />
 
         <com.java.lichenhao.TagManager
@@ -29,14 +25,11 @@
             android:layout_margin="0dp"
             android:padding="10dp"
             android:visibility="invisible"
-            app:container_background_color="@color/background_white"
-            app:container_border_color="@color/background_gray"
             app:container_border_width="5dp"
             app:horizontal_interval="10dp"
             app:tag_clickable="true"
             app:tag_max_length="8"
             app:tag_ripple_duration="300"
-            app:tag_theme="pure_teal"
             app:vertical_interval="10dp" />
 
         <com.marshalchen.ultimaterecyclerview.UltimateRecyclerView
@@ -54,7 +47,6 @@
             android:layout_marginEnd="12dp"
             android:clickable="true"
             android:focusable="true"
-            app:backgroundTint="@color/colorSecondary"
             app:srcCompat="@drawable/baseline_search_white_48dp" />
 
     </LinearLayout>
@@ -70,9 +62,7 @@
             android:id="@+id/nav_view"
             android:layout_width="wrap_content"
             android:layout_height="match_parent"
-            android:background="@color/background_gray"
-            app:headerLayout="@layout/nav_header"
-            app:itemBackground="@color/background_gray"/>
+            app:headerLayout="@layout/nav_header"/>
 
     </LinearLayout>
 

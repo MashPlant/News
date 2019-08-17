@@ -88,12 +88,11 @@
                 android:layout_height="wrap_content"
                 android:text="更多选项"
                 android:layout_gravity="center_horizontal"
-                android:textColor="@color/grey"
                 android:layout_margin="10dp"/>
 
 
     </LinearLayout>
-
+    
 
 
 

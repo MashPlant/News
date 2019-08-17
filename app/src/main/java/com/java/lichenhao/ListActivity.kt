@@ -6,6 +6,7 @@ import android.os.Bundle
 import android.os.Handler
 import android.support.v7.app.ActionBarDrawerToggle
 import android.support.v7.app.AppCompatActivity
+import android.support.v7.app.AppCompatDelegate
 import android.support.v7.widget.LinearLayoutManager
 import android.support.v7.widget.SearchView
 import android.view.Menu
@@ -24,9 +25,19 @@ class ListActivity : AppCompatActivity() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+
+        // AppCompatDelegate.setDefaultNightMode(AppCompatDelegate.MODE_NIGHT_YES)
+        android.util.Log.e("fuck", "fuck")
         setContentView(R.layout.activity_list)
 
         setSupportActionBar(toolbar)
+
+//        if (AppCompatDelegate.getDefaultNightMode() == AppCompatDelegate.MODE_NIGHT_YES) {
+//            R.menu.activity_list.nightMode .setTitle("夜间模式（关）")
+//        } else {
+//            R.id.nightMode.setTitle("夜间模式（开）")
+//        }
+
         supportActionBar!!.setDisplayHomeAsUpEnabled(true)
         supportActionBar!!.setHomeButtonEnabled(true)
 
@@ -50,12 +61,17 @@ class ListActivity : AppCompatActivity() {
         this.menuInflater.inflate(R.menu.activity_list, menu)
         searchItem = menu.findItem(R.id.action_search)
         searchView = searchItem.actionView as SearchView
-
         this.configureSearchView()
 
         // launch from short cut
         if (intent.hasExtra("SEARCH")) {
             searchView.onActionViewExpanded()
+        }
+
+        if (AppCompatDelegate.getDefaultNightMode() == AppCompatDelegate.MODE_NIGHT_YES) {
+            menu.findItem(R.id.nightMode).setTitle("夜间模式（开）")
+        } else {
+            menu.findItem(R.id.nightMode).setTitle("夜间模式（关）")
         }
 
         return super.onCreateOptionsMenu(menu)
@@ -68,6 +84,15 @@ class ListActivity : AppCompatActivity() {
                 newsAdapter.add(x)
             }
         }
+    }
+
+    fun switchNightMode() {
+//        Handler().postDelayed({ recreate() }, 100)
+//                    finish()
+//                    Handler().postDelayed({ recreate() }, 100)
+//                    startActivity(mintent)
+        startActivity(Intent(this, this.javaClass))
+        finish()
     }
 
     override fun onOptionsItemSelected(item: MenuItem): Boolean {
@@ -84,9 +109,39 @@ class ListActivity : AppCompatActivity() {
                 item.isChecked = true
                 newsAdapter.sortBy { it.publishTime }
             }
+
+            R.id.nightMode -> {
+                if (AppCompatDelegate.getDefaultNightMode() == AppCompatDelegate.MODE_NIGHT_YES) {
+//                    item.isChecked = false
+                    AppCompatDelegate.setDefaultNightMode(AppCompatDelegate.MODE_NIGHT_NO)
+                    item.setTitle("夜间模式（关）")
+//                    val mintent = intent
+                    switchNightMode()
+                } else {
+//                    item.isChecked = true
+                    AppCompatDelegate.setDefaultNightMode(AppCompatDelegate.MODE_NIGHT_YES)
+                    item.setTitle("夜间模式（开）")
+//                    val mintent = intent
+                    Handler().postDelayed({ recreate() }, 100)
+                  switchNightMode()
+                }
+            }
         }
         return super.onOptionsItemSelected(item)
     }
+
+//    override fun onSaveInstanceState(outState: Bundle?) {
+//        super.onSaveInstanceState(outState)
+//    }
+//
+//    override fun onRestoreInstanceState(savedInstanceState: Bundle?) {
+//        super.onRestoreInstanceState(savedInstanceState)
+//        if (AppCompatDelegate.getDefaultNightMode() == AppCompatDelegate.MODE_NIGHT_YES) {
+//            R.id.nightMode.setTitle("夜间模式（关）")
+//        } else {
+//            R.id.nightMode.setTitle("夜间模式（开）")
+//        }
+//    }
 
     override fun setTitle(title: CharSequence) {
         supportActionBar!!.title = title
