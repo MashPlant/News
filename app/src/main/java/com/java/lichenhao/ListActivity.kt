@@ -2,8 +2,10 @@ package com.java.lichenhao
 
 
 import android.content.Intent
+import android.content.res.Resources
 import android.os.Bundle
 import android.os.Handler
+import android.support.constraint.ConstraintLayout
 import android.support.v7.app.ActionBarDrawerToggle
 import android.support.v7.app.AppCompatActivity
 import android.support.v7.app.AppCompatDelegate
@@ -13,8 +15,10 @@ import android.util.Log
 import android.view.Menu
 import android.view.MenuItem
 import co.lujun.androidtagview.TagView
-import kotlinx.android.synthetic.main.activity_list.*
 import java.io.IOException
+
+
+import kotlinx.android.synthetic.main.activity_list.*
 
 class ListActivity : AppCompatActivity() {
     private var layoutManager: LinearLayoutManager? = null
@@ -24,6 +28,9 @@ class ListActivity : AppCompatActivity() {
     private lateinit var searchItem: MenuItem
 
     private var searching = false
+
+    private var prevCheckKind = -1
+    private var prevCheckCategory = -1
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -77,17 +84,19 @@ class ListActivity : AppCompatActivity() {
         }
 
         if (AppCompatDelegate.getDefaultNightMode() == AppCompatDelegate.MODE_NIGHT_YES) {
-            menu.findItem(R.id.nightMode).setTitle("夜间模式（开）")
+            menu.findItem(R.id.nightMode).title = "夜间模式（开）"
+            menu.findItem(R.id.menu_sort).icon = resources.getDrawable(R.drawable.baseline_sort_white_48dp, null)
         } else {
-            menu.findItem(R.id.nightMode).setTitle("夜间模式（关）")
+            menu.findItem(R.id.nightMode).title = "夜间模式（关）"
+            menu.findItem(R.id.menu_sort).icon = resources.getDrawable(R.drawable.baseline_sort_grey_48dp, null)
         }
 
         return super.onCreateOptionsMenu(menu)
     }
 
     override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
-        if (requestCode == 42) {
-            val response = data!!.getParcelableExtra("SelectActivityResult") as Response
+        if (requestCode == 42 && data != null) {
+            val response = data.getParcelableExtra<Response>("SelectActivityResult")
             newsAdapter.addAll(response.data)
         }
     }
@@ -120,16 +129,16 @@ class ListActivity : AppCompatActivity() {
                 if (AppCompatDelegate.getDefaultNightMode() == AppCompatDelegate.MODE_NIGHT_YES) {
 //                    item.isChecked = false
                     AppCompatDelegate.setDefaultNightMode(AppCompatDelegate.MODE_NIGHT_NO)
-                    item.setTitle("夜间模式（关）")
+                    item.title = "夜间模式（关）"
 //                    val mintent = intent
                     switchNightMode()
                 } else {
 //                    item.isChecked = true
                     AppCompatDelegate.setDefaultNightMode(AppCompatDelegate.MODE_NIGHT_YES)
-                    item.setTitle("夜间模式（开）")
+                    item.title = "夜间模式（开）"
 //                    val mintent = intent
                     Handler().postDelayed({ recreate() }, 100)
-                  switchNightMode()
+                    switchNightMode()
                 }
             }
         }
@@ -162,22 +171,32 @@ class ListActivity : AppCompatActivity() {
 
     // 侧边栏
     private fun setNavigationView() {
-        val menu = nav_view.menu
         nav_view.itemIconTintList = null
-
-        for (i in 1 until ALL_CATEGORY.size) {
-            menu.add(ALL_CATEGORY[i])
-        }
-
         nav_view.setNavigationItemSelectedListener {
-            newsAdapter.setCurCategory(it.title)
+            when (it.groupId) {
+                R.id.nav_kind -> {
+                    if (prevCheckKind != -1) {
+                        nav_view.menu.findItem(prevCheckKind).isChecked = false
+                    }
+                    prevCheckKind = it.itemId
+                }
+                R.id.nav_category -> {
+                    newsAdapter.setCurCategory(it.title)
+                    toolbar.title = it.title
+                    if (prevCheckCategory != -1) {
+                        nav_view.menu.findItem(prevCheckCategory).isChecked = false
+                    }
+                    prevCheckCategory = it.itemId
+                }
+            }
+            it.isChecked = true
             true
         }
     }
 
     override fun onBackPressed() {
         if (searching) {
-            tag_group_manager!!.hide()
+            tag_group_manager.hide()
 //            newsAdapter.updateGroupNotesList()
             searching = false
             searchView.onActionViewCollapsed()

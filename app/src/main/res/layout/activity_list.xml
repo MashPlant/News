@@ -1,68 +1,70 @@
 <?xml version="1.0" encoding="utf-8"?>
-<android.support.v4.widget.DrawerLayout xmlns:android="http://schemas.android.com/apk/res/android"
-    xmlns:app="http://schemas.android.com/apk/res-auto"
-    android:id="@+id/drawer_layout"
-    android:layout_width="fill_parent"
-    android:layout_height="fill_parent"
-    android:orientation="vertical">
+<android.support.v4.widget.DrawerLayout
+        xmlns:android="http://schemas.android.com/apk/res/android"
+        xmlns:app="http://schemas.android.com/apk/res-auto"
+        android:id="@+id/drawer_layout"
+        android:layout_width="fill_parent"
+        android:layout_height="fill_parent"
+        android:orientation="vertical">
 
     <!--主界面-->
     <LinearLayout
-        android:layout_width="match_parent"
-        android:layout_height="match_parent"
-        android:orientation="vertical">
-
-        <android.support.v7.widget.Toolbar
-            android:id="@+id/toolbar"
-            android:layout_width="match_parent"
-            android:layout_height="?attr/actionBarSize"
-            app:title="@string/list_title" />
-
-        <com.java.lichenhao.TagManager
-            android:id="@+id/tag_group_manager"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_margin="0dp"
-            android:padding="10dp"
-            android:visibility="invisible"
-            app:container_border_width="5dp"
-            app:horizontal_interval="10dp"
-            app:tag_clickable="true"
-            app:tag_max_length="8"
-            app:tag_ripple_duration="300"
-            app:vertical_interval="10dp" />
-
-        <com.marshalchen.ultimaterecyclerview.UltimateRecyclerView
-            android:id="@+id/ultimate_recycler_view"
             android:layout_width="match_parent"
             android:layout_height="match_parent"
-            app:recyclerviewEmptyView="@layout/list_empty_view" />
+            android:orientation="vertical">
+
+        <android.support.v7.widget.Toolbar
+                android:id="@+id/toolbar"
+                android:layout_width="match_parent"
+                android:layout_height="?attr/actionBarSize"
+                app:title="@string/list_title"/>
+
+        <com.java.lichenhao.TagManager
+                android:id="@+id/tag_group_manager"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_margin="0dp"
+                android:padding="10dp"
+                android:visibility="invisible"
+                app:container_border_width="5dp"
+                app:horizontal_interval="10dp"
+                app:tag_clickable="true"
+                app:tag_max_length="8"
+                app:tag_ripple_duration="300"
+                app:vertical_interval="10dp"/>
+
+        <com.marshalchen.ultimaterecyclerview.UltimateRecyclerView
+                android:id="@+id/ultimate_recycler_view"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                app:recyclerviewEmptyView="@layout/list_empty_view"/>
 
         <android.support.design.widget.FloatingActionButton
-            android:id="@+id/new_news_button"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_gravity="bottom|end"
-            android:layout_marginTop="-96dp"
-            android:layout_marginEnd="12dp"
-            android:clickable="true"
-            android:focusable="true"
-            app:srcCompat="@drawable/baseline_search_white_48dp" />
+                android:id="@+id/new_news_button"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_gravity="bottom|end"
+                android:layout_marginTop="-96dp"
+                android:layout_marginEnd="12dp"
+                android:clickable="true"
+                android:focusable="true"
+                app:srcCompat="@drawable/baseline_search_white_48dp"/>
 
     </LinearLayout>
 
     <!--左滑导航栏-->
 
     <LinearLayout
-        android:layout_width="match_parent"
-        android:layout_height="match_parent"
-        android:layout_gravity="start">
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:layout_gravity="start">
 
         <android.support.design.widget.NavigationView
-            android:id="@+id/nav_view"
-            android:layout_width="wrap_content"
-            android:layout_height="match_parent"
-            app:headerLayout="@layout/nav_header"/>
+                android:id="@+id/nav_view"
+                android:layout_width="wrap_content"
+                android:layout_height="match_parent"
+                app:headerLayout="@layout/nav_header"
+                app:menu="@menu/nav_menu"/>
 
     </LinearLayout>
 

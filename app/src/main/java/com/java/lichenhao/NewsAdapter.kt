@@ -53,9 +53,10 @@ class NewsAdapter(private val activity: ListActivity) : UltimateViewAdapter<News
         val news = getItem(position).news
         with(holder) {
             title.text = news.title
-            content.text = news.content
+            content.text =resources.getString(R.string.news_preview_content, news.content)
             category.text = resources.getString(R.string.news_preview_category, news.category)
-            publishTime.text = resources.getString(R.string.news_preview_create_time, news.publishTime)
+            publishTime.text = resources.getString(R.string.news_preview_publish_time, news.publishTime)
+            publisher.text = resources.getString(R.string.news_preview_publisher, news.publisher)
             if (news.imageList.isEmpty()) {
                 image.setImageBitmap(emptyImage)
             } else {
@@ -167,7 +168,8 @@ class NewsAdapter(private val activity: ListActivity) : UltimateViewAdapter<News
         storeToFile()
     }
 
-    fun remove(position: Int) {
+    // 没有保存操作
+    fun doRemove(position: Int) {
         val news = getItem(position)
         when (curCategoryId) {
             SEARCH_IDX -> {
@@ -178,20 +180,21 @@ class NewsAdapter(private val activity: ListActivity) : UltimateViewAdapter<News
             }
             ALL_IDX -> {
                 val cat = ALL_CATEGORY.indexOf(news.news.category)
-                val position1 = allCategory[cat].indexOf(news)
+                val position1 = allCategory[cat].indexOfFirst { it === news } // 要求引用相等，当时就是这样放进来的
                 removeInternal(allCategory[cat], position1)
             }
             else -> {
-                val position1 = allCategory[ALL_IDX].indexOf(news)
+                val position1 = allCategory[ALL_IDX].indexOfFirst { it === news }
                 removeInternal(allCategory[ALL_IDX], position1)
             }
         }
         removeInternal(curCategory, position)
-        storeToFile()
     }
 
     fun clear() {
-        clearInternal(curCategory)
+        while (curCategory.isNotEmpty()) {
+            doRemove(curCategory.size - 1)
+        }
         storeToFile()
     }
 
@@ -202,7 +205,8 @@ class NewsAdapter(private val activity: ListActivity) : UltimateViewAdapter<News
         val title: TextView = itemView.findViewById(R.id.text_view_title)
         val content: TextView = itemView.findViewById(R.id.text_view_text)
         val category: TextView = itemView.findViewById(R.id.text_view_category)
-        val publishTime: TextView = itemView.findViewById(R.id.text_view_create_time)
+        val publishTime: TextView = itemView.findViewById(R.id.text_view_publish_time)
+        val publisher: TextView = itemView.findViewById(R.id.text_view_publisher)
         val image: ImageView = itemView.findViewById(R.id.image_view)
         val emptyImage: Bitmap by lazy(LazyThreadSafetyMode.PUBLICATION) {
             scale(BitmapFactory.decodeResource(resources, R.drawable.no_image_available))
@@ -225,6 +229,7 @@ class NewsAdapter(private val activity: ListActivity) : UltimateViewAdapter<News
             content.width = textWidth
             category.width = textWidth
             publishTime.width = textWidth
+            publisher.width = textWidth
             itemView.setOnClickListener(this)
             itemView.setOnLongClickListener(this)
         }
@@ -251,7 +256,10 @@ class NewsAdapter(private val activity: ListActivity) : UltimateViewAdapter<News
                             storeToFile()
                         }
                     }
-                    R.id.delete -> remove(adapterPosition)
+                    R.id.delete -> {
+                        doRemove(adapterPosition)
+                        storeToFile()
+                    }
                     R.id.share -> {
                     } // todo
                 }

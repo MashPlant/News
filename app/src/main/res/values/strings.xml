@@ -1,7 +1,6 @@
 <resources>
     <string name="app_name">News</string>
 
-    <!--List-->
     <string name="list_title">新闻</string>
     <string name="list_search">搜索</string>
     <string name="list_search_hint">"搜索新闻关键字"</string>
@@ -10,24 +9,27 @@
     <string name="list_sort_publish_time">按发布时间排序</string>
     <string name="list_clear">清空本页</string>
 
-    <!--Navigation-->
-    <string name="groups_title">Groups</string>
     <string name="group_all_news">All News</string>
     <string name="drawer_open">Open</string>
     <string name="drawer_close">Close</string>
 
-    <!--News-->
     <string name="news_favorite">收藏</string>
     <string name="news_delete">删除</string>
     <string name="news_share">分享</string>
 
-    <!--News Preview-->
-    <string name="news_preview_category">类别: %s</string>
-    <string name="news_preview_create_time">发布日期:\u0020\u0020 %s</string>
+    <string name="news_preview_content">内容摘要:\u0020\u0020 %s</string>
+    <string name="news_preview_category">类别:\u0020\u0020 %s</string>
+    <string name="news_preview_publish_time">发布日期:\u0020\u0020 %s</string>
+    <string name="news_preview_publisher">发布者:\u0020\u0020 %s</string>
 
-    <!--Shortcut-->
+    <string name="nav_kind_string">新闻种类</string>
+    <string name="nav_category_string">新闻主题</string>
+    <string name="nav_latest_string">最新</string>
+    <string name="nav_favorite_string">收藏</string>
+    <string name="nav_read_string">已读</string>
+    <string name="nav_search_string">搜索结果</string>
+
     <string name="shortcut_search_disable">搜索不可用</string>
     <string name="shortcut_search_long">搜索新闻</string>
     <string name="shortcut_search_short">搜索新闻</string>
-
 </resources>

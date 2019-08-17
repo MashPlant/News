@@ -1,0 +1,63 @@
+<?xml version="1.0" encoding="utf-8"?>
+<menu xmlns:android="http://schemas.android.com/apk/res/android">
+
+    <item android:title="@string/nav_kind_string">
+        <menu>
+            <group android:id="@+id/nav_kind">
+                <item android:id="@+id/nav_kind0"
+                      android:title="@string/nav_latest_string"
+                      android:icon="@drawable/baseline_whatshot_black_48dp"/>
+                <item android:id="@+id/nav_kind1"
+                      android:title="@string/nav_favorite_string"
+                      android:icon="@drawable/baseline_star_black_48dp"/>
+                <item android:id="@+id/nav_kind2"
+                      android:title="@string/nav_read_string"
+                      android:icon="@drawable/baseline_playlist_add_check_black_48dp"/>
+                <item android:id="@+id/nav_kind3"
+                      android:title="@string/nav_search_string"
+                      android:icon="@drawable/baseline_search_black_48dp"/>
+            </group>
+        </menu>
+    </item>
+
+
+    <item android:title="@string/nav_category_string">
+        <menu>
+            <group android:id="@+id/nav_category">
+                <item android:id="@+id/nav_category0"
+                      android:title="全部"
+                      android:icon="@drawable/baseline_all_inclusive_black_48dp"/>
+                <item android:id="@+id/nav_category1"
+                      android:title="娱乐"
+                      android:icon="@drawable/baseline_music_video_black_48dp"/>
+                <item android:id="@+id/nav_category2"
+                      android:title="军事"
+                      android:icon="@drawable/baseline_gavel_black_48dp"/>
+                <item android:id="@+id/nav_category3"
+                      android:title="教育"
+                      android:icon="@drawable/baseline_school_black_48dp"/>
+                <item android:id="@+id/nav_category4"
+                      android:title="文化"
+                      android:icon="@drawable/baseline_person_pin_black_48dp"/>
+                <item android:id="@+id/nav_category5"
+                      android:title="健康"
+                      android:icon="@drawable/baseline_fitness_center_black_48dp"/>
+                <item android:id="@+id/nav_category6"
+                      android:title="财经"
+                      android:icon="@drawable/baseline_attach_money_black_48dp"/>
+                <item android:id="@+id/nav_category7"
+                      android:title="体育"
+                      android:icon="@drawable/baseline_pool_black_48dp"/>
+                <item android:id="@+id/nav_category8"
+                      android:title="汽车"
+                      android:icon="@drawable/baseline_directions_car_black_48dp"/>
+                <item android:id="@+id/nav_category9"
+                      android:title="科技"
+                      android:icon="@drawable/baseline_developer_board_black_48dp"/>
+                <item android:id="@+id/nav_category10"
+                      android:title="社会"
+                      android:icon="@drawable/baseline_group_black_48dp"/>
+            </group>
+        </menu>
+    </item>
+</menu>
