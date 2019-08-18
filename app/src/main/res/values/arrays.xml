@@ -1,16 +1,23 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
     <string-array name="categories">
-        <item> 全部 </item>
-        <item> 娱乐 </item>
-        <item> 军事  </item>
-        <item> 教育 </item>
-        <item> 文化 </item>
-        <item> 健康 </item>
-        <item> 财经 </item>
-        <item> 体育 </item>
-        <item> 汽车 </item>
-        <item> 科技 </item>
-        <item> 社会 </item>
+        <item> @string/nav_category0_string </item>
+        <item> @string/nav_category1_string </item>
+        <item> @string/nav_category2_string </item>
+        <item> @string/nav_category3_string </item>
+        <item> @string/nav_category4_string </item>
+        <item> @string/nav_category5_string </item>
+        <item> @string/nav_category6_string </item>
+        <item> @string/nav_category7_string </item>
+        <item> @string/nav_category8_string </item>
+        <item> @string/nav_category9_string </item>
+        <item> @string/nav_category10_string </item>
+    </string-array>
+
+    <string-array name="kinds">
+        <item> @string/nav_kind0_string </item>
+        <item> @string/nav_kind1_string </item>
+        <item> @string/nav_kind2_string </item>
+        <item> @string/nav_kind3_string </item>
     </string-array>
 </resources>

@@ -2,10 +2,8 @@ package com.java.lichenhao
 
 
 import android.content.Intent
-import android.content.res.Resources
 import android.os.Bundle
 import android.os.Handler
-import android.support.constraint.ConstraintLayout
 import android.support.v7.app.ActionBarDrawerToggle
 import android.support.v7.app.AppCompatActivity
 import android.support.v7.app.AppCompatDelegate
@@ -14,14 +12,13 @@ import android.support.v7.widget.SearchView
 import android.util.Log
 import android.view.Menu
 import android.view.MenuItem
+import android.view.SubMenu
 import co.lujun.androidtagview.TagView
-import java.io.IOException
 
 
 import kotlinx.android.synthetic.main.activity_list.*
 
 class ListActivity : AppCompatActivity() {
-    private var layoutManager: LinearLayoutManager? = null
     private lateinit var newsAdapter: NewsAdapter
 
     private lateinit var searchView: SearchView
@@ -29,11 +26,16 @@ class ListActivity : AppCompatActivity() {
 
     private var searching = false
 
-    private var prevCheckKind = -1
-    private var prevCheckCategory = -1
+    private var prevCheckKind = R.id.nav_kind0
+    private var prevCheckCategory = R.id.nav_category0
+
+    private lateinit var kindMenu: SubMenu
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+
+        ALL_KIND = resources.getStringArray(R.array.kinds)
+        ALL_CATEGORY = resources.getStringArray(R.array.categories)
 
         // AppCompatDelegate.setDefaultNightMode(AppCompatDelegate.MODE_NIGHT_YES)
         android.util.Log.e("fuck", "fuck")
@@ -47,21 +49,24 @@ class ListActivity : AppCompatActivity() {
 //            R.id.nightMode.setTitle("夜间模式（开）")
 //        }
 
-        supportActionBar!!.setDisplayHomeAsUpEnabled(true)
-        supportActionBar!!.setHomeButtonEnabled(true)
-
-        layoutManager = LinearLayoutManager(this)
-        ultimate_recycler_view.layoutManager = layoutManager
-        newsAdapter = NewsAdapter(this)
-        try {
-            newsAdapter.loadFromFile()
-        } catch (e: IOException) {
-            // 正常，应该是第一次创建文件不存在
-            Log.e("fuck", "newsAdapter.loadFromFile failed: $e")
+        supportActionBar?.let {
+            it.setDisplayHomeAsUpEnabled(true)
+            it.setHomeButtonEnabled(true)
         }
-        ultimate_recycler_view.setAdapter(newsAdapter)
-//        this.newsAdapter.updateGroupNotesList()
-        this.enableRefresh()
+
+        val layoutManager = LinearLayoutManager(this)
+        news_list.layoutManager = layoutManager
+        newsAdapter = NewsAdapter(this, news_list)
+//        news_list.setDefaultOnRefreshListener {
+//            Handler().postDelayed({
+//                if (searching)
+//                    performSearch(searchView.query.toString(), tag_group_manager!!)
+////                else
+////                    newsAdapter.updateGroupNotesList()
+//                news_list.setRefreshing(false)
+//                layoutManager!!.scrollToPosition(0)
+//            }, 500)
+//        }
 
         new_news_button.setOnClickListener {
             startActivityForResult(Intent(this@ListActivity, SelectActivity::class.java), 42)
@@ -73,10 +78,10 @@ class ListActivity : AppCompatActivity() {
     // options menu
     override fun onCreateOptionsMenu(menu: Menu): Boolean {
         // search
-        this.menuInflater.inflate(R.menu.activity_list, menu)
+        menuInflater.inflate(R.menu.activity_list, menu)
         searchItem = menu.findItem(R.id.action_search)
         searchView = searchItem.actionView as SearchView
-        this.configureSearchView()
+        configureSearchView()
 
         // launch from short cut
         if (intent.hasExtra("SEARCH")) {
@@ -97,7 +102,10 @@ class ListActivity : AppCompatActivity() {
     override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
         if (requestCode == 42 && data != null) {
             val response = data.getParcelableExtra<Response>("SelectActivityResult")
-            newsAdapter.addAll(response.data)
+            kindMenu.findItem(prevCheckKind).isChecked = false
+            kindMenu.findItem(R.id.nav_kind3).isChecked = false // 搜索结果一栏
+            prevCheckKind = R.id.nav_kind3
+            newsAdapter.setSearch(response.data.map { NewsExt(it) })
         }
     }
 
@@ -171,21 +179,25 @@ class ListActivity : AppCompatActivity() {
 
     // 侧边栏
     private fun setNavigationView() {
-        nav_view.itemIconTintList = null
+        val menu = nav_view.menu
+        kindMenu = menu.getItem(0).subMenu
+        val categoryMenu = menu.getItem(1).subMenu
+        kindMenu.getItem(0).isChecked = true
+        categoryMenu.getItem(0).let {
+            it.isChecked = true
+            toolbar.title = it.title
+        }
         nav_view.setNavigationItemSelectedListener {
             when (it.groupId) {
                 R.id.nav_kind -> {
-                    if (prevCheckKind != -1) {
-                        nav_view.menu.findItem(prevCheckKind).isChecked = false
-                    }
+                    newsAdapter.setCurKind(it.title)
+                    kindMenu.findItem(prevCheckKind).isChecked = false
                     prevCheckKind = it.itemId
                 }
                 R.id.nav_category -> {
                     newsAdapter.setCurCategory(it.title)
                     toolbar.title = it.title
-                    if (prevCheckCategory != -1) {
-                        nav_view.menu.findItem(prevCheckCategory).isChecked = false
-                    }
+                    categoryMenu.findItem(prevCheckCategory).isChecked = false
                     prevCheckCategory = it.itemId
                 }
             }
@@ -258,19 +270,6 @@ class ListActivity : AppCompatActivity() {
     private fun performSearch(query: String, tag_group_manager: TagManager) {
         val tags = tag_group_manager.checkedTags
         newsAdapter.doSearch(query, tags)
-    }
-
-    private fun enableRefresh() {
-        ultimate_recycler_view.setDefaultOnRefreshListener {
-            Handler().postDelayed({
-                if (searching)
-                    performSearch(searchView.query.toString(), tag_group_manager!!)
-//                else
-//                    newsAdapter.updateGroupNotesList()
-                ultimate_recycler_view.setRefreshing(false)
-                layoutManager!!.scrollToPosition(0)
-            }, 500)
-        }
     }
 }
 
