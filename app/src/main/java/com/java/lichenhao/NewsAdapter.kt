@@ -4,7 +4,7 @@ import android.content.Context.MODE_PRIVATE
 import android.content.Intent
 import android.graphics.Bitmap
 import android.graphics.BitmapFactory
-import android.graphics.Matrix
+import android.os.Handler
 import android.os.Parcel
 import android.support.v7.widget.RecyclerView
 import android.util.DisplayMetrics
@@ -15,66 +15,120 @@ import android.view.ViewGroup
 import android.widget.ImageView
 import android.widget.PopupMenu
 import android.widget.TextView
+import android.widget.Toast
+import com.github.kittinunf.fuel.gson.responseObject
+import com.github.kittinunf.fuel.httpGet
 import com.github.kittinunf.result.Result
+import com.marshalchen.ultimaterecyclerview.UltimateRecyclerView
 
 import com.marshalchen.ultimaterecyclerview.UltimateRecyclerviewViewHolder
 import com.marshalchen.ultimaterecyclerview.UltimateViewAdapter
-import java.io.File
+import java.io.IOException
+import java.util.*
+import kotlin.collections.ArrayList
 
-// 这四个下标在ALL_CATEGORY中是特殊的
-// "搜索"，和"收藏"两个界面下不能有加号
-// "搜索"不在侧边栏显示
-// 向其他分类下添加内容时，都要向"全部"添加
-// 保存的时候只用保存"全部"，用它可以恢复所有的信息
-const val SEARCH_IDX = 0
+const val LATEST_IDX = 0
 const val FAVORITE_IDX = 1
-const val ALL_IDX = 2
+const val READ_IDX = 2
+const val SEARCH_IDX = 3
 
-val ALL_CATEGORY = arrayOf("", "收藏", "全部", "娱乐", "军事", "教育", "文化", "健康", "财经", "体育", "汽车", "科技", "社会")
+const val ALL_IDX = 0
+
+// ListActivity.onCreate中初始化
+lateinit var ALL_KIND: Array<String>
+lateinit var ALL_CATEGORY: Array<String>
 
 const val FILE_NAME = "News"
 
-class NewsAdapter(private val activity: ListActivity) : UltimateViewAdapter<NewsAdapter.ViewHolder>() {
-    val allCategory: Array<ArrayList<NewsExt>> = Array(ALL_CATEGORY.size + 1) { ArrayList<NewsExt>() }
-    var curCategoryId: Int = ALL_IDX
+const val GET_COUNT = 100
+
+class NewsAdapter(private val activity: ListActivity, news_list: UltimateRecyclerView) :
+    UltimateViewAdapter<NewsAdapter.ViewHolder>() {
+    val allNews = Array(ALL_KIND.size) { Array(ALL_CATEGORY.size) { ArrayList<NewsExt>() } }
+
+    var curKindId = LATEST_IDX
         private set
-    // 搜索的时候设置prevCategoryId = curCategoryId，搜索结束后设置回来
-    private var prevCategoryId: Int = 0
-    val curCategory
-        inline get() = allCategory[curCategoryId]
+    var curCategoryId = ALL_IDX
+        private set
 
-    override fun onCreateViewHolder(parent: ViewGroup): ViewHolder {
-        val v = LayoutInflater.from(parent.context).inflate(R.layout.list_item, parent, false)
-        return ViewHolder(v)
-    }
+    private var prevKindId: Int = 0
+    val curNews
+        inline get() = allNews[curKindId][curCategoryId]
 
-    override fun onBindViewHolder(holder: ViewHolder, position: Int) {
-        val newsExt = getItem(position)
-        val news = getItem(position).news
-        with(holder) {
-            title.text = news.title
-            content.text =resources.getString(R.string.news_preview_content, news.content)
-            category.text = resources.getString(R.string.news_preview_category, news.category)
-            publishTime.text = resources.getString(R.string.news_preview_publish_time, news.publishTime)
-            publisher.text = resources.getString(R.string.news_preview_publisher, news.publisher)
-            if (news.imageList.isEmpty()) {
-                image.setImageBitmap(emptyImage)
-            } else {
-                newsExt.downloadImage(0) { result ->
+    private var timeTag = 0 // 见ViewHolder.timeTag
+
+    init {
+        news_list.setAdapter(this)
+        news_list.setDefaultOnRefreshListener {
+            if (curKindId == LATEST_IDX) {
+                val c = Calendar.getInstance()
+                val url =
+                    "${BASE_URL}endDate=${c.get(Calendar.YEAR)}-${c.get(Calendar.MONTH)}-${c.get(Calendar.DAY_OF_MONTH)}&size=$GET_COUNT"
+                url.httpGet().responseObject<Response> { _, _, result ->
                     when (result) {
                         is Result.Failure -> {
-                            Log.e("my", result.getException().toString())
+                            Toast.makeText(
+                                activity, "${activity.resources.getString(R.string.network_err)}${result.error}",
+                                Toast.LENGTH_SHORT
+                            ).show()
                         }
                         is Result.Success -> {
-                            image.setImageBitmap(scale(result.get()))
+                            val latestKind = allNews[LATEST_IDX]
+                            for (x in latestKind) {
+                                x.clear()
+                            }
+                            for (news in result.value.data) {
+                                add(NewsExt(news), latestKind, false)
+                            }
+                            notifyDataSetChanged()
                         }
                     }
+                    news_list.setRefreshing(false)
+                }
+            } else {
+                news_list.setRefreshing(false)
+            }
+        }
+        news_list.reenableLoadmore()
+        news_list.setOnLoadMoreListener { _, _ ->
+            if (curKindId == LATEST_IDX) {
+                news_list.setRefreshing(true)
+                val latestKind = allNews[LATEST_IDX]
+                val endDate = if (latestKind[ALL_IDX].isNotEmpty()) {
+                    latestKind[ALL_IDX].last().news.publishTime
+                } else {
+                    val c = Calendar.getInstance()
+                    "${c.get(Calendar.YEAR)}-${c.get(Calendar.MONTH)}-${c.get(Calendar.DAY_OF_MONTH)}"
+                }
+                val url = "${BASE_URL}endDate=$endDate&size=$GET_COUNT"
+                url.httpGet().responseObject<Response> { _, _, result ->
+                    when (result) {
+                        is Result.Failure -> {
+                            Toast.makeText(
+                                activity, "${activity.resources.getString(R.string.network_err)}${result.error}",
+                                Toast.LENGTH_SHORT
+                            ).show()
+                        }
+                        is Result.Success -> {
+                            for (news in result.value.data) {
+                                add(NewsExt(news), latestKind, false)
+                            }
+                            notifyDataSetChanged()
+                        }
+                    }
+                    news_list.setRefreshing(false)
                 }
             }
         }
+        try {
+            loadFromFile()
+        } catch (e: IOException) {
+            // 正常，应该是第一次创建文件不存在
+            Log.e("fuck", "newsAdapter.loadFromFile failed: $e")
+        }
     }
 
-    override fun getAdapterItemCount() = curCategory.size
+    override fun getAdapterItemCount() = curNews.size
 
     override fun generateHeaderId(position: Int) = getItem(position).news.title[0].toLong()
 
@@ -94,111 +148,168 @@ class NewsAdapter(private val activity: ListActivity) : UltimateViewAdapter<News
 
     // 目前只支持关键词，之后加更多
     fun doSearch(keywords: String, tags: List<String>?) {
-        prevCategoryId = curCategoryId
-        curCategoryId = 0
-        val keywordSet = keywords.split(' ')
-        for (x in allCategory[prevCategoryId]) {
+        val keywordSet = keywords.split(' ').toHashSet()
+        val result = ArrayList<NewsExt>()
+        for (x in curNews) {
             for (kw in x.news.keywords) {
                 if (keywordSet.contains(kw.word)) {
-                    curCategory.add(x)
+                    result.add(x)
                 }
             }
+        }
+        setSearch(result)
+    }
+
+    private fun add(news: NewsExt, toKind: Array<ArrayList<NewsExt>>, needStore: Boolean) {
+        val cat = ALL_CATEGORY.indexOf(news.news.category)
+        if (cat != -1) {
+            toKind[cat].add(news)
+            toKind[ALL_IDX].add(news)
+        }
+        if (needStore) {
+            storeToFile()
+        }
+    }
+
+    fun setSearch(newsList: List<NewsExt>) {
+        prevKindId = curKindId
+        curKindId = SEARCH_IDX
+        val searchNews = allNews[SEARCH_IDX]
+        for (x in searchNews) {
+            x.clear()
+        }
+        for (news in newsList) {
+            add(news, searchNews, false)
         }
         notifyDataSetChanged()
     }
 
     fun finishSearch() {
-        curCategoryId = prevCategoryId
+        curKindId = prevKindId
+        notifyDataSetChanged()
     }
 
     inline fun <R : Comparable<R>> sortBy(crossinline selector: (News) -> R?) {
-        curCategory.sortBy { selector(it.news) }
+        curNews.sortBy { selector(it.news) }
         notifyDataSetChanged()
-        // save()
+        if (needStore()) {
+            storeToFile()
+        }
+    }
+
+    fun setCurKind(name: CharSequence) {
+        curKindId = ALL_KIND.indexOf(name)
+        notifyDataSetChanged()
     }
 
     fun setCurCategory(name: CharSequence) {
         curCategoryId = ALL_CATEGORY.indexOf(name)
-        allCategory[SEARCH_IDX].clear()
         notifyDataSetChanged()
     }
 
-    // 只会保存"全部"
-    private fun storeToFile() {
+    // 在这些页面下的删除/排序...操作是否需要保存
+    fun needStore(): Boolean = curKindId == FAVORITE_IDX || curKindId == READ_IDX
+
+    // 只保存"收藏"和"已读"新闻中的"全部"新闻
+    fun storeToFile() {
         val parcel = Parcel.obtain()
-        parcel.writeTypedList(allCategory[ALL_IDX])
+        parcel.writeTypedList(allNews[FAVORITE_IDX][ALL_IDX])
+        parcel.writeTypedList(allNews[READ_IDX][ALL_IDX])
         activity.openFileOutput(FILE_NAME, MODE_PRIVATE).use { it.write(parcel.marshall()) }
         parcel.recycle()
     }
 
-    fun loadFromFile() {
-        for (x in allCategory) {
-            x.clear()
-        }
+    private fun loadFromFile() {
         val bytes = activity.openFileInput(FILE_NAME).use { it.readBytes() }
         val parcel = Parcel.obtain()
         parcel.unmarshall(bytes, 0, bytes.size)
         parcel.setDataPosition(0)
-        parcel.readTypedList(allCategory[ALL_IDX], NewsExt.CREATOR)
+        parcel.readTypedList(allNews[FAVORITE_IDX][ALL_IDX], ParcelHelper.CREATOR)
+        parcel.readTypedList(allNews[READ_IDX][ALL_IDX], ParcelHelper.CREATOR)
         parcel.recycle()
-        for (x in allCategory[ALL_IDX]) {
-            val cat = ALL_CATEGORY.indexOf(x.news.category)
-            insertInternal(allCategory[cat], x, allCategory[cat].size)
-            if (x.favorite) {
-                insertInternal(allCategory[FAVORITE_IDX], x, allCategory[FAVORITE_IDX].size)
-            }
-        }
-    }
 
-    fun addAll(newsList: List<News>) {
-        for (news in newsList) {
-            val cat = ALL_CATEGORY.indexOf(news.category)
-            if (cat != -1) {
-                val nulls = ArrayList<ByteArray?>(news.imageList.size) // capacity
-                for (i in 0..news.imageList.size) {
-                    nulls.add(null) // 有对应的函数直接实现吗?
-                }
-                val newsExt = NewsExt(news, read = false, favorite = false, imageBitmapList = nulls)
-                insertInternal(allCategory[cat], newsExt, allCategory[cat].size)
-                if (cat != ALL_IDX) {
-                    insertInternal(allCategory[ALL_IDX], newsExt, allCategory[ALL_IDX].size)
-                }
+        allNews[FAVORITE_IDX].let {
+            for (x in it[ALL_IDX]) {
+                it[ALL_CATEGORY.indexOf(x.news.category)].add(x)
             }
         }
-        storeToFile()
+        allNews[FAVORITE_IDX].let {
+            for (x in it[ALL_IDX]) {
+                it[ALL_CATEGORY.indexOf(x.news.category)].add(x)
+            }
+        }
+        notifyDataSetChanged()
     }
 
     // 没有保存操作
     fun doRemove(position: Int) {
         val news = getItem(position)
+        when (curKindId) {
+            FAVORITE_IDX -> news.favorite = false
+            READ_IDX -> news.read = false
+        }
+        val curKind = allNews[curKindId]
         when (curCategoryId) {
-            SEARCH_IDX -> {
-                // no-op
-            }
-            FAVORITE_IDX -> {
-                news.favorite = false
-            }
             ALL_IDX -> {
                 val cat = ALL_CATEGORY.indexOf(news.news.category)
-                val position1 = allCategory[cat].indexOfFirst { it === news } // 要求引用相等，当时就是这样放进来的
-                removeInternal(allCategory[cat], position1)
+                val position1 = curKind[cat].indexOfFirst { it === news } // 要求引用相等，当时就是这样放进来的
+                curKind[cat].removeAt(position1)
             }
             else -> {
-                val position1 = allCategory[ALL_IDX].indexOfFirst { it === news }
-                removeInternal(allCategory[ALL_IDX], position1)
+                val position1 = curKind[ALL_IDX].indexOfFirst { it === news }
+                curKind[ALL_IDX].removeAt(position1)
             }
         }
-        removeInternal(curCategory, position)
+        notifyDataSetChanged()
     }
 
     fun clear() {
-        while (curCategory.isNotEmpty()) {
-            doRemove(curCategory.size - 1)
+        while (curNews.isNotEmpty()) {
+            doRemove(curNews.size - 1)
         }
-        storeToFile()
+        if (needStore()) {
+            storeToFile()
+        }
     }
 
-    fun getItem(position: Int) = curCategory[if (hasHeaderView()) position - 1 else position]
+    fun getItem(position: Int) = curNews[if (hasHeaderView()) position - 1 else position]
+
+
+
+    override fun onCreateViewHolder(parent: ViewGroup): ViewHolder {
+        val v = LayoutInflater.from(parent.context).inflate(R.layout.list_item, parent, false)
+        return ViewHolder(v)
+    }
+
+    override fun onBindViewHolder(holder: ViewHolder, position: Int) {
+        val newsExt = getItem(position)
+        val news = getItem(position).news
+        with(holder) {
+            title.text = news.title
+            content.text = resources.getString(R.string.news_preview_content, news.content)
+            category.text = resources.getString(R.string.news_preview_category, news.category)
+            publishTime.text = resources.getString(R.string.news_preview_publish_time, news.publishTime)
+            publisher.text = resources.getString(R.string.news_preview_publisher, news.publisher)
+            val curTimeTag = this@NewsAdapter.timeTag++ // 这个是在主线程，不必担心
+            timeTag = curTimeTag
+            if (news.imageList.isEmpty()) {
+                image.setImageBitmap(emptyImage)
+            } else {
+                newsExt.downloadImage(0) { result ->
+                    when (result) {
+                        is Result.Failure -> {
+                            Log.e("my", result.getException().toString())
+                        }
+                        is Result.Success -> {
+                            if (timeTag == curTimeTag) { // 这个也是在主线程，不必担心
+                                image.setImageBitmap(scale(result.get()))
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    }
 
     inner class ViewHolder(itemView: View) : UltimateRecyclerviewViewHolder<Any>(itemView), View.OnClickListener,
         View.OnLongClickListener {
@@ -211,6 +322,11 @@ class NewsAdapter(private val activity: ListActivity) : UltimateViewAdapter<News
         val emptyImage: Bitmap by lazy(LazyThreadSafetyMode.PUBLICATION) {
             scale(BitmapFactory.decodeResource(resources, R.drawable.no_image_available))
         }
+
+        // 图片是异步加载的，而ViewHolder是循环使用的，所以可能先翻倒的图片在被刷掉之后再显示出来，然后又被后翻倒的图片替代，影响体验
+        // 用一个时间戳来确定图片的先后
+        var timeTag = 0
+
         private val screenWidth: Int by lazy(LazyThreadSafetyMode.PUBLICATION) {
             val outMetrics = DisplayMetrics()
             activity.windowManager.defaultDisplay.getMetrics(outMetrics)
@@ -224,12 +340,12 @@ class NewsAdapter(private val activity: ListActivity) : UltimateViewAdapter<News
         }
 
         init {
-            val textWidth = screenWidth / 3 * 2
-            title.width = textWidth
-            content.width = textWidth
-            category.width = textWidth
-            publishTime.width = textWidth
-            publisher.width = textWidth
+            val maxWidth = screenWidth / 3 * 2
+            title.width = maxWidth
+            content.width = maxWidth
+            category.width = maxWidth
+            publishTime.width = maxWidth
+            publisher.width = maxWidth
             itemView.setOnClickListener(this)
             itemView.setOnLongClickListener(this)
         }
@@ -237,8 +353,10 @@ class NewsAdapter(private val activity: ListActivity) : UltimateViewAdapter<News
         override fun onClick(v: View) {
             val selected = getItem(adapterPosition)
             NEWS_ACTIVITY_INTENT_ARG = selected
-            selected.read = true
-            storeToFile()
+            if (!selected.read) {
+                selected.read = true
+                add(selected, allNews[READ_IDX], true)
+            }
             val intent = Intent(activity, NewsActivity::class.java)
             activity.startActivity(intent)
         }
@@ -249,16 +367,17 @@ class NewsAdapter(private val activity: ListActivity) : UltimateViewAdapter<News
             menu.setOnMenuItemClickListener { item ->
                 when (item.itemId) {
                     R.id.favorite -> {
-                        val news = curCategory[adapterPosition]
+                        val news = curNews[adapterPosition]
                         if (!news.favorite) {
-                            allCategory[FAVORITE_IDX].add(news)
                             news.favorite = true
-                            storeToFile()
+                            add(news, allNews[FAVORITE_IDX], true)
                         }
                     }
                     R.id.delete -> {
                         doRemove(adapterPosition)
-                        storeToFile()
+                        if (needStore()) {
+                            storeToFile()
+                        }
                     }
                     R.id.share -> {
                     } // todo

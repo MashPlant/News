@@ -17,17 +17,32 @@
     <string name="news_delete">删除</string>
     <string name="news_share">分享</string>
 
-    <string name="news_preview_content">内容摘要:\u0020\u0020 %s</string>
-    <string name="news_preview_category">类别:\u0020\u0020 %s</string>
-    <string name="news_preview_publish_time">发布日期:\u0020\u0020 %s</string>
-    <string name="news_preview_publisher">发布者:\u0020\u0020 %s</string>
+    <string name="news_preview_content">内容摘要: %s</string>
+    <string name="news_preview_category">类别: %s</string>
+    <string name="news_preview_publish_time">发布日期: %s</string>
+    <string name="news_preview_publisher">发布者: %s</string>
 
     <string name="nav_kind_string">新闻种类</string>
     <string name="nav_category_string">新闻主题</string>
-    <string name="nav_latest_string">最新</string>
-    <string name="nav_favorite_string">收藏</string>
-    <string name="nav_read_string">已读</string>
-    <string name="nav_search_string">搜索结果</string>
+    
+    <string name="nav_kind0_string">最新</string>
+    <string name="nav_kind1_string">收藏</string>
+    <string name="nav_kind2_string">已读</string>
+    <string name="nav_kind3_string">搜索结果</string>
+
+    <string name="nav_category0_string">全部</string>
+    <string name="nav_category1_string">娱乐</string>
+    <string name="nav_category2_string">军事</string>
+    <string name="nav_category3_string">教育</string>
+    <string name="nav_category4_string">文化</string>
+    <string name="nav_category5_string">健康</string>
+    <string name="nav_category6_string">财经</string>
+    <string name="nav_category7_string">体育</string>
+    <string name="nav_category8_string">汽车</string>
+    <string name="nav_category9_string">科技</string>
+    <string name="nav_category10_string">社会</string>
+
+    <string name="network_err">网络错误</string>
 
     <string name="shortcut_search_disable">搜索不可用</string>
     <string name="shortcut_search_long">搜索新闻</string>

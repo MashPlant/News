@@ -34,7 +34,7 @@
                 app:vertical_interval="10dp"/>
 
         <com.marshalchen.ultimaterecyclerview.UltimateRecyclerView
-                android:id="@+id/ultimate_recycler_view"
+                android:id="@+id/news_list"
                 android:layout_width="match_parent"
                 android:layout_height="match_parent"
                 app:recyclerviewEmptyView="@layout/list_empty_view"/>
