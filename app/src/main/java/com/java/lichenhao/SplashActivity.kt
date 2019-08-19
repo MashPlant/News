@@ -7,27 +7,20 @@ import android.content.pm.PackageManager
 import android.os.AsyncTask
 import android.os.Bundle
 import android.support.v4.app.ActivityCompat
-import android.support.v7.app.AppCompatDelegate
-import android.widget.TextView
+import android.support.v7.app.AlertDialog
+import android.util.Log
+import android.widget.EditText
 import android.widget.Toast
 
 import java.lang.ref.WeakReference
 
 class SplashActivity : Activity() {
-
-    private var state: TextView? = null
-
-    internal class ResourceInit(ref: SplashActivity) : AsyncTask<Void?, String, Void?>() {
+    internal class ResourceInit(ref: SplashActivity, val input: AccountInput) : AsyncTask<Void?, String, Void?>() {
         private val ref = WeakReference(ref)
 
         override fun doInBackground(vararg voids: Void?): Void? {
-            publishProgress("loading...")
+            initAdapterGlobals(input.username, input.password, ref.get()!!)
             return null
-        }
-
-        override fun onProgressUpdate(vararg values: String) {
-            super.onProgressUpdate(*values)
-            ref.get()!!.state!!.text = values[0]
         }
 
         override fun onPostExecute(aVoid: Void?) {
@@ -48,23 +41,37 @@ class SplashActivity : Activity() {
 
         setContentView(R.layout.activity_splash)
 
-        // manually ask for RW permission
-        while (ActivityCompat.checkSelfPermission(
-                this,
-                Manifest.permission.WRITE_EXTERNAL_STORAGE
-            ) != PackageManager.PERMISSION_GRANTED
+        while (ActivityCompat.checkSelfPermission(this, Manifest.permission.WRITE_EXTERNAL_STORAGE)
+            != PackageManager.PERMISSION_GRANTED
         ) {
-            // We don't have permission so prompt the user
-            ActivityCompat.requestPermissions(
-                this,
-                PERMISSIONS_STORAGE,
-                REQUEST_EXTERNAL_STORAGE
-            )
+            ActivityCompat.requestPermissions(this, PERMISSIONS_STORAGE, REQUEST_EXTERNAL_STORAGE)
         }
 
-        state = findViewById(R.id.splash_init_state)
-
-        ResourceInit(this).execute()
+        val accounts = AccountManager(this)
+        val dialog = LoginDialog(this)
+        dialog.show { username, password, isRegister ->
+            val input = AccountInput(username, password)
+            Log.e("input", "$input")
+            if (isRegister) {
+                when (accounts.register(input)) {
+                    RegisterResult.Ok -> {
+                        ResourceInit(this, input).execute()
+                        dialog.dismiss()
+                    }
+                    RegisterResult.DuplicateUser -> Toast.makeText(this, "用户名已经存在", Toast.LENGTH_SHORT).show()
+                    RegisterResult.InvalidAccount -> Toast.makeText(this, "用户名或密码不能为空", Toast.LENGTH_SHORT).show()
+                }
+            } else {
+                when (accounts.login(input)) {
+                    LoginResult.Ok -> {
+                        ResourceInit(this, input).execute()
+                        dialog.dismiss()
+                    }
+                    LoginResult.NoSuchUser -> Toast.makeText(this, "用户名不存在", Toast.LENGTH_SHORT).show()
+                    LoginResult.WrongPassword -> Toast.makeText(this, "密码错误", Toast.LENGTH_SHORT).show()
+                }
+            }
+        }
     }
 
     companion object {

@@ -47,4 +47,10 @@
     <string name="shortcut_search_disable">搜索不可用</string>
     <string name="shortcut_search_long">搜索新闻</string>
     <string name="shortcut_search_short">搜索新闻</string>
+
+    <string name="login_register_string">用户登录/注册</string>
+    <string name="login_string">登录</string>
+    <string name="register_string">注册</string>
+    <string name="username_string">用户名</string>
+    <string name="password_string">密码</string>
 </resources>

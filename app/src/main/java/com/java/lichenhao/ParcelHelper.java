@@ -12,5 +12,9 @@ public class ParcelHelper {
     // 看起来还是没有更好的方法?
     @NonNull
     @SuppressWarnings("unchecked")
-    public static final Parcelable.Creator<NewsExt> CREATOR = NewsExt.CREATOR;
+    public static final Parcelable.Creator<NewsExt> NEWS_EXT_CREATOR = NewsExt.CREATOR;
+
+    @NonNull
+    @SuppressWarnings("unchecked")
+    public static final Parcelable.Creator<AccountStore> ACCOUNT_STORE_CREATOR = AccountStore.CREATOR;
 }

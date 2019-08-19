@@ -4,7 +4,6 @@ import android.content.Context.MODE_PRIVATE
 import android.content.Intent
 import android.graphics.Bitmap
 import android.graphics.BitmapFactory
-import android.os.Handler
 import android.os.Parcel
 import android.support.v7.widget.RecyclerView
 import android.util.DisplayMetrics
@@ -25,6 +24,9 @@ import com.marshalchen.ultimaterecyclerview.UltimateRecyclerviewViewHolder
 import com.marshalchen.ultimaterecyclerview.UltimateViewAdapter
 import java.io.IOException
 import java.util.*
+import javax.crypto.Cipher
+import javax.crypto.CipherInputStream
+import javax.crypto.CipherOutputStream
 import kotlin.collections.ArrayList
 
 const val LATEST_IDX = 0
@@ -38,7 +40,14 @@ const val ALL_IDX = 0
 lateinit var ALL_KIND: Array<String>
 lateinit var ALL_CATEGORY: Array<String>
 
-const val FILE_NAME = "News"
+// 这些都在SplashActivity/AccountManager中接受用户输入初始化
+lateinit var USERNAME: String
+// 只用来加密
+lateinit var CIPHER: Cipher
+val FILE_INPUT_FAVORITE = ArrayList<NewsExt>()
+val FILE_INPUT_READ = ArrayList<NewsExt>()
+
+const val NEWS_FILE_NAME = "News"
 
 const val GET_COUNT = 100
 
@@ -120,12 +129,7 @@ class NewsAdapter(private val activity: ListActivity, news_list: UltimateRecycle
                 }
             }
         }
-        try {
-            loadFromFile()
-        } catch (e: IOException) {
-            // 正常，应该是第一次创建文件不存在
-            Log.e("fuck", "newsAdapter.loadFromFile failed: $e")
-        }
+        loadFromFile()
     }
 
     override fun getAdapterItemCount() = curNews.size
@@ -215,19 +219,15 @@ class NewsAdapter(private val activity: ListActivity, news_list: UltimateRecycle
         val parcel = Parcel.obtain()
         parcel.writeTypedList(allNews[FAVORITE_IDX][ALL_IDX])
         parcel.writeTypedList(allNews[READ_IDX][ALL_IDX])
-        activity.openFileOutput(FILE_NAME, MODE_PRIVATE).use { it.write(parcel.marshall()) }
+        val fo = activity.openFileOutput("$NEWS_FILE_NAME-$USERNAME", MODE_PRIVATE)
+        CipherOutputStream(fo, CIPHER).use { it.write(parcel.marshall()) }
         parcel.recycle()
     }
 
+    // 这里并不进行io，数据是在AccountManager中读到FILE_INPUT_XXX中的
     private fun loadFromFile() {
-        val bytes = activity.openFileInput(FILE_NAME).use { it.readBytes() }
-        val parcel = Parcel.obtain()
-        parcel.unmarshall(bytes, 0, bytes.size)
-        parcel.setDataPosition(0)
-        parcel.readTypedList(allNews[FAVORITE_IDX][ALL_IDX], ParcelHelper.CREATOR)
-        parcel.readTypedList(allNews[READ_IDX][ALL_IDX], ParcelHelper.CREATOR)
-        parcel.recycle()
-
+        allNews[FAVORITE_IDX][ALL_IDX] = FILE_INPUT_FAVORITE
+        allNews[READ_IDX][ALL_IDX] = FILE_INPUT_READ
         allNews[FAVORITE_IDX].let {
             for (x in it[ALL_IDX]) {
                 it[ALL_CATEGORY.indexOf(x.news.category)].add(x)
@@ -273,8 +273,6 @@ class NewsAdapter(private val activity: ListActivity, news_list: UltimateRecycle
     }
 
     fun getItem(position: Int) = curNews[if (hasHeaderView()) position - 1 else position]
-
-
 
     override fun onCreateViewHolder(parent: ViewGroup): ViewHolder {
         val v = LayoutInflater.from(parent.context).inflate(R.layout.list_item, parent, false)
