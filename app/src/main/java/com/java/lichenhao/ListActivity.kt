@@ -109,7 +109,7 @@ class ListActivity : AppCompatActivity() {
         }
     }
 
-    fun switchNightMode() {
+    private fun switchNightMode() {
 //        Handler().postDelayed({ recreate() }, 100)
 //                    finish()
 //                    Handler().postDelayed({ recreate() }, 100)
@@ -135,17 +135,12 @@ class ListActivity : AppCompatActivity() {
 
             R.id.nightMode -> {
                 if (AppCompatDelegate.getDefaultNightMode() == AppCompatDelegate.MODE_NIGHT_YES) {
-//                    item.isChecked = false
                     AppCompatDelegate.setDefaultNightMode(AppCompatDelegate.MODE_NIGHT_NO)
                     item.title = "夜间模式（关）"
-//                    val mintent = intent
                     switchNightMode()
                 } else {
-//                    item.isChecked = true
                     AppCompatDelegate.setDefaultNightMode(AppCompatDelegate.MODE_NIGHT_YES)
                     item.title = "夜间模式（开）"
-//                    val mintent = intent
-                    Handler().postDelayed({ recreate() }, 100)
                     switchNightMode()
                 }
             }

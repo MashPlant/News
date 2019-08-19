@@ -1,6 +1,8 @@
 package com.java.lichenhao
 
 import android.app.DatePickerDialog
+import android.content.Context
+import android.content.SharedPreferences
 import android.net.sip.SipSession
 import kotlinx.android.synthetic.main.content_select.*
 
@@ -10,8 +12,7 @@ import android.support.v7.app.AppCompatDelegate
 import android.util.Log
 import android.view.Menu
 import android.view.View
-import android.widget.SearchView
-import android.widget.TextView
+import android.widget.*
 import java.util.*
 
 import com.github.kittinunf.fuel.gson.responseObject
@@ -21,6 +22,12 @@ import kotlinx.android.synthetic.main.content_select.view.*
 import java.net.URLEncoder
 import java.text.SimpleDateFormat
 import java.util.GregorianCalendar
+import android.app.Activity
+import android.content.Intent
+import android.widget.AdapterView
+
+
+
 
 const val BASE_URL = "https://api2.newsminer.net/svc/news/queryNewsList?"
 const val CHARSET = "UTF-8"
@@ -37,6 +44,10 @@ data class Query(
 class SelectActivity : AppCompatActivity() {
 
     val query: Query? = null
+    var listItems = ArrayList<String>()
+    var adapter: ArrayAdapter<String>? = null
+    val searchHistory_sharePreferenceName = "searchHistory"
+    var MAX_HISTORY = 7
 
     fun setStartDate() {
         val c = Calendar.getInstance()
@@ -137,6 +148,37 @@ class SelectActivity : AppCompatActivity() {
         }
     }
 
+    fun setSearchNews() {
+
+        val his = getSharedPreferences(searchHistory_sharePreferenceName, Context.MODE_PRIVATE)
+        var index: Int = 0
+        while (index < MAX_HISTORY) {
+            if (!his.getString(index.toString(), "").equals("")) {
+                listItems.add(his.getString(index.toString(), ""))
+            }
+            ++index
+        }
+
+        adapter = ArrayAdapter(
+            this,
+            android.R.layout.simple_list_item_1,
+            listItems
+        )
+        searchHistory.setAdapter(adapter)
+    }
+
+    override fun onDestroy() {
+        var index: Int = 0
+        val his = getSharedPreferences(searchHistory_sharePreferenceName, Context.MODE_PRIVATE)
+        val ed =his.edit()
+        while (index < listItems.size) {
+            ed.putString(index.toString(), listItems[index])
+            ++index
+        }
+        ed.commit()
+        super.onDestroy()
+    }
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 
@@ -147,6 +189,28 @@ class SelectActivity : AppCompatActivity() {
         setMoreOption()
         setStartDate()
         setEndDate()
+//        setSearchNews()
+        val his = getSharedPreferences(searchHistory_sharePreferenceName, Context.MODE_PRIVATE)
+        var index: Int = 0
+        while (index < MAX_HISTORY) {
+            if (!his.getString(index.toString(), "").equals("")) {
+                listItems.add(his.getString(index.toString(), ""))
+            }
+            ++index
+        }
+
+        adapter = ArrayAdapter(
+            this,
+            android.R.layout.simple_list_item_1,
+            listItems
+        )
+        searchHistory.adapter = adapter
+
+        searchHistory.setOnItemClickListener { adapterView, view, i, l ->
+            val touch = adapterView.getItemAtPosition(i) as String
+            searchNews.setQuery(touch, false)
+
+        }
 
         searchNews.setOnQueryTextListener(object : SearchView.OnQueryTextListener {
 
@@ -155,12 +219,17 @@ class SelectActivity : AppCompatActivity() {
             }
 
             override fun onQueryTextSubmit(q: String): Boolean {
+                listItems.add(0, q)
+                if (listItems.size > MAX_HISTORY) {
+                    listItems.removeAt(MAX_HISTORY - 1)
+                }
+                adapter?.notifyDataSetChanged()
                 var query = Query(
                     size = 15,
-                    startDate = startDate.getText().toString(),
-                    endDate = endDate.getText().toString(),
+                    startDate = startDate.text.toString(),
+                    endDate = endDate.text.toString(),
                     words = q,
-                    categories = categories.getSelectedItem().toString()
+                    categories = categories.selectedItem.toString()
                 )
                 var url = BASE_URL
                 query.size?.let { url += "size=" + URLEncoder.encode(it.toString(), CHARSET) + "&" }
