@@ -148,25 +148,6 @@ class SelectActivity : AppCompatActivity() {
         }
     }
 
-    fun setSearchNews() {
-
-        val his = getSharedPreferences(searchHistory_sharePreferenceName, Context.MODE_PRIVATE)
-        var index: Int = 0
-        while (index < MAX_HISTORY) {
-            if (!his.getString(index.toString(), "").equals("")) {
-                listItems.add(his.getString(index.toString(), ""))
-            }
-            ++index
-        }
-
-        adapter = ArrayAdapter(
-            this,
-            android.R.layout.simple_list_item_1,
-            listItems
-        )
-        searchHistory.setAdapter(adapter)
-    }
-
     override fun onDestroy() {
         var index: Int = 0
         val his = getSharedPreferences(searchHistory_sharePreferenceName, Context.MODE_PRIVATE)
@@ -209,7 +190,6 @@ class SelectActivity : AppCompatActivity() {
         searchHistory.setOnItemClickListener { adapterView, view, i, l ->
             val touch = adapterView.getItemAtPosition(i) as String
             searchNews.setQuery(touch, false)
-
         }
 
         searchNews.setOnQueryTextListener(object : SearchView.OnQueryTextListener {
@@ -220,7 +200,7 @@ class SelectActivity : AppCompatActivity() {
 
             override fun onQueryTextSubmit(q: String): Boolean {
                 listItems.add(0, q)
-                if (listItems.size > MAX_HISTORY) {
+                if (listItems.size >= MAX_HISTORY) {
                     listItems.removeAt(MAX_HISTORY - 1)
                 }
                 adapter?.notifyDataSetChanged()

@@ -2,11 +2,11 @@
 <ScrollView
             xmlns:android="http://schemas.android.com/apk/res/android"
             android:layout_width="match_parent"
-            android:layout_height="match_parent"
+            android:layout_height="wrap_content"
             android:id="@+id/news_page">
     <LinearLayout
             android:layout_width="match_parent"
-            android:layout_height="match_parent"
+            android:layout_height="wrap_content"
             android:orientation="vertical"
             android:layout_margin="36sp">
         <TextView
@@ -36,29 +36,17 @@
             android:text="点击展开猜你喜欢"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:textSize="18sp"
-            android:layout_gravity="center"/>
+            android:textSize="20sp"
+            android:textStyle="bold"
+            android:layout_gravity="center"
+            android:id="@+id/clickShowRecommendNews"/>
 
-        <ListView
+        <com.java.lichenhao.MyListView
                 android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:id="@+id/recommendNews">
-        </ListView>
-
-            <!--<ImageView-->
-                    <!--android:layout_width="wrap_content"-->
-                    <!--android:layout_height="wrap_content"-->
-                    <!--android:src="@drawable/baseline_add_white_48dp"-->
-                    <!--/>-->
-        <!--</LinearLayout>-->
-
-        <!--<LinearLayout-->
-                <!--android:orientation="vertical"-->
-                <!--android:layout_width="wrap_content"-->
-                <!--android:layout_height="wrap_content" tools:layout_editor_absoluteY="299dp"-->
-                <!--app:layout_constraintStart_toStartOf="parent" android:layout_marginStart="8dp"-->
-                <!--app:layout_constraintEnd_toEndOf="parent" android:layout_marginEnd="8dp">-->
-        <!--</LinearLayout>-->
-
+                android:layout_height="match_parent"
+                android:textSize="15sp"
+                android:id="@+id/recommendNews"
+                android:layout_marginBottom="50dp">
+        </com.java.lichenhao.MyListView>
     </LinearLayout>
 </ScrollView>
