@@ -10,15 +10,19 @@ import android.util.Log
 import android.view.Menu
 import android.view.MenuItem
 import android.view.View.GONE
+import com.github.kittinunf.fuel.gson.responseObject
+import com.github.kittinunf.fuel.httpGet
 import com.github.kittinunf.result.Result
 import kotlinx.android.synthetic.main.activity_news.*
 import kotlinx.android.synthetic.main.content_news.*
 import java.util.*
+import kotlin.collections.ArrayList
 
 // Intent里放不下这么大(可能带图片)的数据(也完全没必要复制一遍)，直接用全局变量传参了
 var NEWS_ACTIVITY_INTENT_ARG: NewsExt? = null
 
 class NewsActivity : AppCompatActivity() {
+
     override fun onCreateOptionsMenu(menu: Menu): Boolean {
         menuInflater.inflate(R.menu.list_item_options, menu)
         return super.onCreateOptionsMenu(menu)
@@ -36,6 +40,32 @@ class NewsActivity : AppCompatActivity() {
         val scale = imgWidth.toFloat() / old.width
         return Bitmap.createScaledBitmap(old, imgWidth, (old.height * scale).toInt(), true)
     }
+
+//    private fun setRecommendNews(news: News) {
+//
+//        for
+//
+//        var url = BASE_URL + "size=5&startDate=1998-09-07&endDate=2098-09-07&words=" + java.net.URLEncoder.encode(keyword.word, CHARSET)
+//
+//        url.httpGet().responseObject<Response> { _, _, result ->
+//            Log.e("my", "what?")
+//            when (result) {
+//                is Result.Failure -> {
+//                    val ex = result.getException()
+//                    Log.e("fuck", ex.toString())
+//                }
+//                is Result.Success -> {
+//                    val data = result.get()
+//                    for (newsData in data.data) {
+//                        if (!title.equals(newsTitle)) {
+//                            ++recommendNewsCount
+//                            Log.e("title", newsData.title)
+//                        }
+//                    }
+//                }
+//            }
+//        }
+//    }
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -56,7 +86,7 @@ class NewsActivity : AppCompatActivity() {
             val news = newsExt.news
             news_title.text = news.title
             news_content.text = news.content.toArticle()
-            news_content.movementMethod = ScrollingMovementMethod.getInstance()
+//            news_content.movementMethod = ScrollingMovementMethod.getInstance()
 
             if (news.imageList.isNotEmpty()) {
                 newsExt.downloadImage(0) { result ->
@@ -73,5 +103,6 @@ class NewsActivity : AppCompatActivity() {
                 news_image.visibility = GONE
             }
         }
+//        setRecommendNews(news)
     }
 }
