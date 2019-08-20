@@ -51,6 +51,8 @@ const val NEWS_FILE_NAME = "News"
 
 const val GET_COUNT = 100
 
+lateinit var THE_NEWS_ADAPTER: NewsAdapter
+
 class NewsAdapter(private val activity: ListActivity, news_list: UltimateRecyclerView) :
     UltimateViewAdapter<NewsAdapter.ViewHolder>() {
     val allNews = Array(ALL_KIND.size) { Array(ALL_CATEGORY.size) { ArrayList<NewsExt>() } }
@@ -67,6 +69,7 @@ class NewsAdapter(private val activity: ListActivity, news_list: UltimateRecycle
     private var timeTag = 0 // 见ViewHolder.timeTag
 
     init {
+        THE_NEWS_ADAPTER = this
         news_list.setAdapter(this)
         news_list.setDefaultOnRefreshListener {
             if (curKindId == LATEST_IDX) {
@@ -87,7 +90,7 @@ class NewsAdapter(private val activity: ListActivity, news_list: UltimateRecycle
                                 x.clear()
                             }
                             for (news in result.value.data) {
-                                add(NewsExt(news), latestKind, false)
+                                add1(NewsExt(news), latestKind)
                             }
                             notifyDataSetChanged()
                         }
@@ -120,7 +123,7 @@ class NewsAdapter(private val activity: ListActivity, news_list: UltimateRecycle
                         }
                         is Result.Success -> {
                             for (news in result.value.data) {
-                                add(NewsExt(news), latestKind, false)
+                                add1(NewsExt(news), latestKind)
                             }
                             notifyDataSetChanged()
                         }
@@ -164,16 +167,27 @@ class NewsAdapter(private val activity: ListActivity, news_list: UltimateRecycle
         setSearch(result)
     }
 
-    private fun add(news: NewsExt, toKind: Array<ArrayList<NewsExt>>, needStore: Boolean) {
+    // 用于add到最新或者搜索结果，不需要保存，也不需要查重
+    private fun add1(news: NewsExt, toKind: Array<ArrayList<NewsExt>>) {
         val cat = ALL_CATEGORY.indexOf(news.news.category)
         if (cat != -1) {
             toKind[cat].add(news)
             toKind[ALL_IDX].add(news)
         }
-        if (needStore) {
-            storeToFile()
-        }
     }
+
+    // 用于add到收藏或已读，需要保存，也需要查重
+    // which = READ_IDX或者FAVORITE_IDX
+    fun add(news: NewsExt, which: Int) {
+        val cat = ALL_CATEGORY.indexOf(news.news.category)
+        val toKind = allNews[which]
+        if (cat != -1 && !toKind[ALL_IDX].contains(news)) {
+            toKind[cat].add(news)
+            toKind[ALL_IDX].add(news)
+        }
+        storeToFile()
+    }
+
 
     fun setSearch(newsList: List<NewsExt>) {
         prevKindId = curKindId
@@ -183,7 +197,7 @@ class NewsAdapter(private val activity: ListActivity, news_list: UltimateRecycle
             x.clear()
         }
         for (news in newsList) {
-            add(news, searchNews, false)
+            add1(news, searchNews)
         }
         notifyDataSetChanged()
     }
@@ -351,10 +365,8 @@ class NewsAdapter(private val activity: ListActivity, news_list: UltimateRecycle
         override fun onClick(v: View) {
             val selected = getItem(adapterPosition)
             NEWS_ACTIVITY_INTENT_ARG = selected
-            if (!selected.read) {
-                selected.read = true
-                add(selected, allNews[READ_IDX], true)
-            }
+            selected.read = true
+            add(selected, READ_IDX)
             val intent = Intent(activity, NewsActivity::class.java)
             activity.startActivity(intent)
         }
@@ -366,10 +378,8 @@ class NewsAdapter(private val activity: ListActivity, news_list: UltimateRecycle
                 when (item.itemId) {
                     R.id.favorite -> {
                         val news = curNews[adapterPosition]
-                        if (!news.favorite) {
-                            news.favorite = true
-                            add(news, allNews[FAVORITE_IDX], true)
-                        }
+                        news.favorite = true
+                        add(news, FAVORITE_IDX)
                     }
                     R.id.delete -> {
                         doRemove(adapterPosition)
@@ -387,22 +397,3 @@ class NewsAdapter(private val activity: ListActivity, news_list: UltimateRecycle
         }
     }
 }
-
-
-// Group news
-//    fun updateGroupNewsList() {
-//        this.updateList(TableOperate.getInstance().getAllNews(currentGroup, null))
-//    }
-
-//    fun getCurrentGroup(): String? {
-//        return this.currentGroup
-//    }
-//
-//    fun setCurrentGroup(groupName: String) {
-//        this.currentGroup = groupName
-//        updateGroupNewsList()
-//    }
-
-
-//    val curCategoryName
-//        get() = ALL_CATEGORY[curCategoryId]
