@@ -3,18 +3,15 @@ package com.java.lichenhao
 
 import android.content.Intent
 import android.os.Bundle
-import android.os.Handler
 import android.support.v7.app.ActionBarDrawerToggle
 import android.support.v7.app.AppCompatActivity
 import android.support.v7.app.AppCompatDelegate
 import android.support.v7.widget.LinearLayoutManager
 import android.support.v7.widget.SearchView
-import android.util.Log
 import android.view.Menu
 import android.view.MenuItem
 import android.view.SubMenu
 import co.lujun.androidtagview.TagView
-
 
 import kotlinx.android.synthetic.main.activity_list.*
 
@@ -33,12 +30,7 @@ class ListActivity : AppCompatActivity() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-
-        ALL_KIND = resources.getStringArray(R.array.kinds)
-        ALL_CATEGORY = resources.getStringArray(R.array.categories)
-
         // AppCompatDelegate.setDefaultNightMode(AppCompatDelegate.MODE_NIGHT_YES)
-        android.util.Log.e("fuck", "fuck")
         setContentView(R.layout.activity_list)
 
         setSupportActionBar(toolbar)
@@ -110,10 +102,6 @@ class ListActivity : AppCompatActivity() {
     }
 
     private fun switchNightMode() {
-//        Handler().postDelayed({ recreate() }, 100)
-//                    finish()
-//                    Handler().postDelayed({ recreate() }, 100)
-//                    startActivity(mintent)
         startActivity(Intent(this, this.javaClass))
         finish()
     }
@@ -127,12 +115,10 @@ class ListActivity : AppCompatActivity() {
                 item.isChecked = true
                 newsAdapter.sortBy { it.title }
             }
-
             R.id.sort_publish_time -> {
                 item.isChecked = true
                 newsAdapter.sortBy { it.publishTime }
             }
-
             R.id.nightMode -> {
                 if (AppCompatDelegate.getDefaultNightMode() == AppCompatDelegate.MODE_NIGHT_YES) {
                     AppCompatDelegate.setDefaultNightMode(AppCompatDelegate.MODE_NIGHT_NO)

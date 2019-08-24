@@ -8,7 +8,6 @@ import kotlinx.android.parcel.Parcelize
 import java.io.IOException
 import java.security.MessageDigest
 import javax.crypto.Cipher
-import javax.crypto.CipherInputStream
 import javax.crypto.SecretKeyFactory
 import javax.crypto.spec.PBEKeySpec
 import javax.crypto.spec.PBEParameterSpec
@@ -82,20 +81,14 @@ class AccountManager(private val context: Context) {
     }
 }
 
-fun initAdapterGlobals(username: String, password: String, context: Context) {
+fun initAdapterGlobals(username: String, password: String) {
     val password1 = password.toCharArray()
+    ALL_KIND = GLOBAL_CONTEXT.resources.getStringArray(R.array.kinds)
+    ALL_CATEGORY = GLOBAL_CONTEXT.resources.getStringArray(R.array.categories)
     USERNAME = username
     CIPHER = makeCipher(password1, Cipher.ENCRYPT_MODE)
     try {
-        val decrypt = makeCipher(password1, Cipher.DECRYPT_MODE)
-        val fi = context.openFileInput("$NEWS_FILE_NAME-$USERNAME")
-        val bytes = CipherInputStream(fi, decrypt).use { it.readBytes() }
-        val parcel = Parcel.obtain()
-        parcel.unmarshall(bytes, 0, bytes.size)
-        parcel.setDataPosition(0)
-        parcel.readTypedList(FILE_INPUT_FAVORITE, ParcelHelper.NEWS_EXT_CREATOR)
-        parcel.readTypedList(FILE_INPUT_READ, ParcelHelper.NEWS_EXT_CREATOR)
-        parcel.recycle()
+        NewsData.loadFromFile(makeCipher(password1, Cipher.DECRYPT_MODE))
     } catch (e: IOException) { // 正常，应该是文件还不存在
         Log.e("initAdapterGlobals", e.toString())
     }

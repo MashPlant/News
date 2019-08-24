@@ -19,5 +19,6 @@
         <item> @string/nav_kind1_string </item>
         <item> @string/nav_kind2_string </item>
         <item> @string/nav_kind3_string </item>
+        <item> @string/nav_kind4_string </item>
     </string-array>
 </resources>

@@ -31,7 +31,7 @@ data class NewsExt(
     var favorite: Boolean,
     val imageBitmapList: Array<ByteArray?> // 下载的图片具体内容，下标和news.imageList一一对应
 ) : Parcelable {
-    constructor(news: News) : this(news, false, false, arrayOfNulls(news.imageList.size))
+    constructor(news: News) : this(news, NewsData.isRead(news), NewsData.isFavorite(news), arrayOfNulls(news.imageList.size))
 
     inline fun downloadImage(which: Int, crossinline handler: (Result<Bitmap, FuelError>) -> Unit) {
         imageBitmapList[which]?.let {

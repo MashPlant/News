@@ -1,25 +1,29 @@
 package com.java.lichenhao
 
 import android.Manifest
+import android.annotation.SuppressLint
 import android.app.Activity
+import android.content.Context
 import android.content.Intent
 import android.content.pm.PackageManager
 import android.os.AsyncTask
 import android.os.Bundle
 import android.support.v4.app.ActivityCompat
-import android.support.v7.app.AlertDialog
 import android.util.Log
-import android.widget.EditText
 import android.widget.Toast
 
 import java.lang.ref.WeakReference
+
+// 没必要警告内存泄漏，因为App的生命周期本来就是全局的
+@SuppressLint("StaticFieldLeak")
+lateinit var GLOBAL_CONTEXT: Context
 
 class SplashActivity : Activity() {
     internal class ResourceInit(ref: SplashActivity, val input: AccountInput) : AsyncTask<Void?, String, Void?>() {
         private val ref = WeakReference(ref)
 
         override fun doInBackground(vararg voids: Void?): Void? {
-            initAdapterGlobals(input.username, input.password, ref.get()!!)
+            initAdapterGlobals(input.username, input.password)
             return null
         }
 
@@ -36,10 +40,9 @@ class SplashActivity : Activity() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-
-        // AppCompatDelegate.setDefaultNightMode(AppCompatDelegate.MODE_NIGHT_YES)
-
         setContentView(R.layout.activity_splash)
+
+        GLOBAL_CONTEXT = applicationContext
 
         while (ActivityCompat.checkSelfPermission(this, Manifest.permission.WRITE_EXTERNAL_STORAGE)
             != PackageManager.PERMISSION_GRANTED

@@ -29,6 +29,7 @@
     <string name="nav_kind1_string">收藏</string>
     <string name="nav_kind2_string">已读</string>
     <string name="nav_kind3_string">搜索结果</string>
+    <string name="nav_kind4_string">推荐</string>
 
     <string name="nav_category0_string">全部</string>
     <string name="nav_category1_string">娱乐</string>

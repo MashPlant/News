@@ -6,6 +6,7 @@ import android.os.Bundle
 import android.support.v7.app.ActionBar
 import android.support.v7.app.AppCompatActivity
 import android.view.Menu
+import android.view.MenuItem
 import android.view.View.GONE
 import com.github.kittinunf.fuel.gson.responseObject
 import com.github.kittinunf.fuel.httpGet
@@ -27,11 +28,6 @@ data class RecommendNews(
 )
 
 class NewsActivity : AppCompatActivity() {
-    override fun onCreateOptionsMenu(menu: Menu): Boolean {
-        menuInflater.inflate(R.menu.list_item_options, menu)
-        return super.onCreateOptionsMenu(menu)
-    }
-
     private fun scale(old: Bitmap, imgWidth: Int): Bitmap {
         val scale = imgWidth.toFloat() / old.width
         return Bitmap.createScaledBitmap(old, imgWidth, (old.height * scale).toInt(), true)
@@ -61,8 +57,10 @@ class NewsActivity : AppCompatActivity() {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_news)
         setSupportActionBar(findViewById(R.id.toolbar))
-        Objects.requireNonNull<ActionBar>(supportActionBar).setDisplayHomeAsUpEnabled(true)
-        supportActionBar!!.setHomeButtonEnabled(true)
+        supportActionBar?.let {
+            it.setDisplayHomeAsUpEnabled(true)
+            it.setHomeButtonEnabled(true)
+        }
 
         // 注意不能在onCreate中访问news_image.width，结果会是0，因为此时image尚未绘制
         // 这导致Bitmap.createScaledBitmap返回null，这也是非常诡异的，这里抛异常也许更合理
@@ -103,8 +101,17 @@ class NewsActivity : AppCompatActivity() {
         content_news.recommendNews.setOnItemClickListener { _, _, i, _ ->
             val tmp = NewsExt(shownRecommendNews[i])
             NEWS_ACTIVITY_INTENT_ARG = tmp
-            THE_NEWS_ADAPTER.add(tmp, READ_IDX)
+            NewsData.add(tmp, READ_IDX)
             startActivity(Intent(this, this.javaClass))
         }
+    }
+
+    override fun onOptionsItemSelected(item: MenuItem?): Boolean {
+        item?.let {
+            when (it.itemId) {
+                android.R.id.home -> finish()
+            }
+        }
+        return super.onOptionsItemSelected(item)
     }
 }
