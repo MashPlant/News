@@ -3,20 +3,16 @@ package com.java.lichenhao
 import android.content.Intent
 import android.graphics.Bitmap
 import android.os.Bundle
-import android.support.v7.app.ActionBar
 import android.support.v7.app.AppCompatActivity
-import android.view.Menu
 import android.view.MenuItem
 import android.view.View.GONE
+import android.widget.ArrayAdapter
 import com.github.kittinunf.fuel.gson.responseObject
 import com.github.kittinunf.fuel.httpGet
+import com.github.kittinunf.result.success
 import kotlinx.android.synthetic.main.activity_news.*
 import kotlinx.android.synthetic.main.content_news.*
 import kotlinx.android.synthetic.main.content_news.view.*
-import java.util.*
-import kotlin.collections.ArrayList
-import android.widget.ArrayAdapter
-import com.github.kittinunf.result.success
 import java.net.URLEncoder
 
 // Intent里放不下这么大(可能带图片)的数据(也完全没必要复制一遍)，直接用全局变量传参了
@@ -71,12 +67,17 @@ class NewsActivity : AppCompatActivity() {
         content_news.viewTreeObserver.addOnGlobalLayoutListener {
             news_title.text = news.title
             news_content.text = news.content.toArticle()
-            if (news.imageList.isNotEmpty()) {
-                newsExt.downloadImage(0) {
-                    it.success { img -> news_image.setImageBitmap(scale(img, news_image.width)) }
+            for ((idx, img) in arrayOf(
+                news_image0, news_image1, news_image2, news_image3, news_image4,
+                news_image5, news_image6, news_image7, news_image8, news_image9
+            ).withIndex()) {
+                if (idx < news.imageList.size) {
+                    newsExt.downloadImage(idx) {
+                        it.success { img1 -> img.setImageBitmap(scale(img1, img.width)) }
+                    }
+                } else {
+                    img.visibility = GONE
                 }
-            } else {
-                news_image.visibility = GONE
             }
         }
 

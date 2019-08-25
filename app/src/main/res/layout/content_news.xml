@@ -1,9 +1,9 @@
 <?xml version="1.0" encoding="utf-8"?>
 <ScrollView
-            xmlns:android="http://schemas.android.com/apk/res/android"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:id="@+id/news_page">
+        xmlns:android="http://schemas.android.com/apk/res/android"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:id="@+id/news_page">
     <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
@@ -17,13 +17,46 @@
                 android:textSize="25sp"
         />
 
-        <pl.droidsonroids.gif.GifImageView
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:layout_marginTop="28dp"
-                android:id="@+id/news_image"
-                android:src="@drawable/loading"
-        />
+        <!--方便起见，直接硬编码最多10张图片，图片多或位置多则不显示-->
+        <pl.droidsonroids.gif.GifImageView android:layout_width="match_parent" android:layout_height="wrap_content"
+                                           android:layout_marginTop="28dp" android:id="@+id/news_image0"
+                                           android:src="@drawable/loading"/>
+
+        <pl.droidsonroids.gif.GifImageView android:layout_width="match_parent" android:layout_height="wrap_content"
+                                           android:layout_marginTop="28dp" android:id="@+id/news_image1"
+                                           android:src="@drawable/loading"/>
+
+        <pl.droidsonroids.gif.GifImageView android:layout_width="match_parent" android:layout_height="wrap_content"
+                                           android:layout_marginTop="28dp" android:id="@+id/news_image2"
+                                           android:src="@drawable/loading"/>
+
+        <pl.droidsonroids.gif.GifImageView android:layout_width="match_parent" android:layout_height="wrap_content"
+                                           android:layout_marginTop="28dp" android:id="@+id/news_image3"
+                                           android:src="@drawable/loading"/>
+
+        <pl.droidsonroids.gif.GifImageView android:layout_width="match_parent" android:layout_height="wrap_content"
+                                           android:layout_marginTop="28dp" android:id="@+id/news_image4"
+                                           android:src="@drawable/loading"/>
+
+        <pl.droidsonroids.gif.GifImageView android:layout_width="match_parent" android:layout_height="wrap_content"
+                                           android:layout_marginTop="28dp" android:id="@+id/news_image5"
+                                           android:src="@drawable/loading"/>
+
+        <pl.droidsonroids.gif.GifImageView android:layout_width="match_parent" android:layout_height="wrap_content"
+                                           android:layout_marginTop="28dp" android:id="@+id/news_image6"
+                                           android:src="@drawable/loading"/>
+
+        <pl.droidsonroids.gif.GifImageView android:layout_width="match_parent" android:layout_height="wrap_content"
+                                           android:layout_marginTop="28dp" android:id="@+id/news_image7"
+                                           android:src="@drawable/loading"/>
+
+        <pl.droidsonroids.gif.GifImageView android:layout_width="match_parent" android:layout_height="wrap_content"
+                                           android:layout_marginTop="28dp" android:id="@+id/news_image8"
+                                           android:src="@drawable/loading"/>
+
+        <pl.droidsonroids.gif.GifImageView android:layout_width="match_parent" android:layout_height="wrap_content"
+                                           android:layout_marginTop="28dp" android:id="@+id/news_image9"
+                                           android:src="@drawable/loading"/>
 
         <TextView
                 android:layout_width="match_parent"
@@ -33,13 +66,13 @@
         />
 
         <TextView
-            android:text="点击展开猜你喜欢"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:textSize="20sp"
-            android:textStyle="bold"
-            android:layout_gravity="center"
-            android:id="@+id/clickShowRecommendNews"/>
+                android:text="点击展开猜你喜欢"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:textSize="20sp"
+                android:textStyle="bold"
+                android:layout_gravity="center"
+                android:id="@+id/clickShowRecommendNews"/>
 
         <com.java.lichenhao.MyListView
                 android:layout_width="match_parent"

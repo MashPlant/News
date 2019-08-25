@@ -68,8 +68,8 @@ class NewsAdapter(private val activity: ListActivity, news_list: UltimateRecycle
 
     override fun newFooterHolder(view: View) = ViewHolder(view)
 
-    fun doSearch(keywords: String, tags: List<String>?) {
-        NewsData.doSearch(keywords, tags)
+    fun doSearch(keywords: String) {
+        NewsData.doSearch(keywords)
         notifyDataSetChanged()
     }
 
@@ -79,7 +79,7 @@ class NewsAdapter(private val activity: ListActivity, news_list: UltimateRecycle
     }
 
     fun finishSearch() {
-        NewsData.curKindId = NewsData.prevKindId
+        NewsData.finishSearch()
         notifyDataSetChanged()
     }
 
@@ -113,9 +113,7 @@ class NewsAdapter(private val activity: ListActivity, news_list: UltimateRecycle
         val newsExt = NewsData.curNews[position]
         val news = NewsData.curNews[position].news
         with(holder) {
-            if (newsExt.read) {
-                layout.setBackgroundColor(Color.LTGRAY)
-            }
+            layout.setBackgroundColor(if (newsExt.read) Color.LTGRAY else Color.WHITE)
             val r = resources
             title.text = news.title
             @SuppressLint

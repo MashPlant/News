@@ -11,7 +11,7 @@ import android.support.v7.widget.SearchView
 import android.view.Menu
 import android.view.MenuItem
 import android.view.SubMenu
-import co.lujun.androidtagview.TagView
+import android.view.View
 
 import kotlinx.android.synthetic.main.activity_list.*
 
@@ -20,8 +20,6 @@ class ListActivity : AppCompatActivity() {
 
     private lateinit var searchView: SearchView
     private lateinit var searchItem: MenuItem
-
-    private var searching = false
 
     private var prevCheckKind = R.id.nav_kind0
     private var prevCheckCategory = R.id.nav_category0
@@ -56,7 +54,7 @@ class ListActivity : AppCompatActivity() {
         menuInflater.inflate(R.menu.activity_list, menu)
         searchItem = menu.findItem(R.id.action_search)
         searchView = searchItem.actionView as SearchView
-        configureSearchView()
+        initSearchView()
 
         // launch from short cut
         if (intent.hasExtra("SEARCH")) {
@@ -78,7 +76,7 @@ class ListActivity : AppCompatActivity() {
         if (requestCode == 42 && data != null) {
             val response = data.getParcelableExtra<Response>("SelectActivityResult")
             kindMenu.findItem(prevCheckKind).isChecked = false
-            kindMenu.findItem(R.id.nav_kind3).isChecked = false // 搜索结果一栏
+            kindMenu.findItem(R.id.nav_kind3).isChecked = true // 搜索结果一栏
             prevCheckKind = R.id.nav_kind3
             newsAdapter.setSearch(response.data.map { NewsExt(it) })
         }
@@ -155,53 +153,35 @@ class ListActivity : AppCompatActivity() {
         }
     }
 
-    override fun onBackPressed() {
-        if (searching) {
-//            tag_group_manager.hide()
-//            newsAdapter.updateGroupNotesList()
-            searching = false
-            searchView.onActionViewCollapsed()
-        } else { // 会退出该页面
-            super.onBackPressed()
-        }
-    }
-
-    // search
-    private fun configureSearchView() {
+    private fun initSearchView() {
         searchView.queryHint = resources.getString(R.string.list_search_hint)
         searchView.isSubmitButtonEnabled = true
 
-        // open searchView
-        searchView.setOnSearchClickListener {
-//            tag_group_manager.show()
-            searching = true
-        }
-
-        // close searchView
         searchView.setOnCloseListener {
-//            tag_group_manager.hide()
             newsAdapter.finishSearch()
-//            newsAdapter.updateGroupNotesList()
-            searching = false
+            kindMenu.findItem(R.id.nav_kind0).isChecked = true // 回到最初的分类：最新(避免麻烦)
+            kindMenu.findItem(R.id.nav_kind3).isChecked = false // 搜索结果一栏
+            prevCheckKind = R.id.nav_kind0
             false
         }
 
-        // search
         searchView.setOnQueryTextListener(object : SearchView.OnQueryTextListener {
             override fun onQueryTextSubmit(query: String): Boolean {
-//                performSearch(query, tag_group_manager)
+                doSearch(query)
                 return true
             }
 
             override fun onQueryTextChange(newText: String): Boolean {
-//                performSearch(newText, tag_group_manager)
+                doSearch(newText)
                 return true
             }
         })
     }
 
-//    private fun performSearch(query: String, tag_group_manager: TagManager) {
-//        val tags = tag_group_manager.checkedTags
-//        newsAdapter.doSearch(query, tags)
-//    }
+    private fun doSearch(query: String) {
+        newsAdapter.doSearch(query)
+        kindMenu.findItem(prevCheckKind).isChecked = false
+        kindMenu.findItem(R.id.nav_kind3).isChecked = true // 搜索结果一栏
+        prevCheckKind = R.id.nav_kind3
+    }
 }

@@ -45,7 +45,8 @@ object NewsData {
 
     var curKindId = LATEST_IDX
 
-    var prevKindId: Int = 0
+    // -1表示无效，即不存在prevKind
+    var prevKindId = -1
 
     var curCategoryId = ALL_IDX
 
@@ -162,10 +163,13 @@ object NewsData {
         }
     }
 
-    fun doSearch(keywords: String, tags: List<String>?) {
+    fun doSearch(keywords: String) {
+        if (prevKindId == -1) {
+            prevKindId = curKindId
+        }
         val keywordSet = keywords.split(' ').toHashSet()
         val result = ArrayList<NewsExt>()
-        for (x in curNews) {
+        for (x in allNews[prevKindId][curCategoryId]) {
             for (kw in x.news.keywords) {
                 if (keywordSet.contains(kw.word)) {
                     result.add(x)
@@ -176,13 +180,20 @@ object NewsData {
     }
 
     fun setSearch(newsList: List<NewsExt>) {
-        prevKindId = curKindId
+        if (prevKindId == -1) {
+            prevKindId = curKindId
+        }
         curKindId = SEARCH_IDX
         val searchNews = allNews[SEARCH_IDX]
         searchNews.forEach(ArrayList<NewsExt>::clear)
         for (news in newsList) {
             addInternal(news, searchNews)
         }
+    }
+
+    fun finishSearch() {
+        curKindId = prevKindId
+        prevKindId = -1
     }
 
     fun addInternal(news: NewsExt, toKind: Array<ArrayList<NewsExt>>) {
@@ -215,7 +226,7 @@ object NewsData {
     private fun needStore(): Boolean = curKindId == FAVORITE_IDX || curKindId == READ_IDX
 
     // 只保存"收藏"和"已读"新闻中的"全部"新闻
-    fun storeToFile() {
+    private fun storeToFile() {
         doAsync {
             val parcel = Parcel.obtain()
             parcel.writeTypedList(allNews[FAVORITE_IDX][ALL_IDX])
