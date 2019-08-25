@@ -20,6 +20,9 @@ class LoginDialog(context: Context) : AlertDialog(context) {
     inline fun show(crossinline handler: (String, String, Boolean) -> Unit) {
         val usernameText = content.findViewById<EditText>(R.id.username_text)
         val passwordText = content.findViewById<EditText>(R.id.password_text)
+        passwordText.clearFocus()
+        usernameText.requestFocus()
+
         content.findViewById<Button>(R.id.login_button).setOnClickListener {
             handler(usernameText.text.toString(), passwordText.text.toString(), false)
         }

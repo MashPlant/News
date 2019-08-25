@@ -17,10 +17,13 @@
     <string name="news_delete">删除</string>
     <string name="news_share">分享</string>
 
-    <string name="news_preview_content">内容摘要: %s</string>
-    <string name="news_preview_category">类别: %s</string>
-    <string name="news_preview_publish_time">发布日期: %s</string>
-    <string name="news_preview_publisher">发布者: %s</string>
+    <string name="news_preview_content">内容摘要: </string>
+    <string name="news_preview_category">类别: </string>
+    <string name="news_preview_publish_time">发布日期: </string>
+    <string name="news_preview_publisher">发布者: </string>
+
+    <string name="read_string">[已读]</string>
+    <string name="favorite_string">[已收藏]</string>
 
     <string name="nav_kind_string">新闻种类</string>
     <string name="nav_category_string">新闻主题</string>

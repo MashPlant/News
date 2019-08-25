@@ -30,16 +30,9 @@ class ListActivity : AppCompatActivity() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        // AppCompatDelegate.setDefaultNightMode(AppCompatDelegate.MODE_NIGHT_YES)
         setContentView(R.layout.activity_list)
 
         setSupportActionBar(toolbar)
-
-//        if (AppCompatDelegate.getDefaultNightMode() == AppCompatDelegate.MODE_NIGHT_YES) {
-//            R.menu.activity_list.nightMode .setTitle("夜间模式（关）")
-//        } else {
-//            R.id.nightMode.setTitle("夜间模式（开）")
-//        }
 
         supportActionBar?.let {
             it.setDisplayHomeAsUpEnabled(true)
@@ -49,16 +42,6 @@ class ListActivity : AppCompatActivity() {
         val layoutManager = LinearLayoutManager(this)
         news_list.layoutManager = layoutManager
         newsAdapter = NewsAdapter(this, news_list)
-//        news_list.setDefaultOnRefreshListener {
-//            Handler().postDelayed({
-//                if (searching)
-//                    performSearch(searchView.query.toString(), tag_group_manager!!)
-////                else
-////                    newsAdapter.updateGroupNotesList()
-//                news_list.setRefreshing(false)
-//                layoutManager!!.scrollToPosition(0)
-//            }, 500)
-//        }
 
         new_news_button.setOnClickListener {
             startActivityForResult(Intent(this@ListActivity, SelectActivity::class.java), 42)
@@ -108,9 +91,7 @@ class ListActivity : AppCompatActivity() {
 
     override fun onOptionsItemSelected(item: MenuItem): Boolean {
         when (item.itemId) {
-            R.id.clear -> {
-                newsAdapter.clear()
-            }
+            R.id.clear -> newsAdapter.clear()
             R.id.sort_title -> {
                 item.isChecked = true
                 newsAdapter.sortBy { it.title }
@@ -133,19 +114,6 @@ class ListActivity : AppCompatActivity() {
         }
         return super.onOptionsItemSelected(item)
     }
-
-//    override fun onSaveInstanceState(outState: Bundle?) {
-//        super.onSaveInstanceState(outState)
-//    }
-//
-//    override fun onRestoreInstanceState(savedInstanceState: Bundle?) {
-//        super.onRestoreInstanceState(savedInstanceState)
-//        if (AppCompatDelegate.getDefaultNightMode() == AppCompatDelegate.MODE_NIGHT_YES) {
-//            R.id.nightMode.setTitle("夜间模式（关）")
-//        } else {
-//            R.id.nightMode.setTitle("夜间模式（开）")
-//        }
-//    }
 
     override fun setTitle(title: CharSequence) {
         supportActionBar!!.title = title
@@ -189,7 +157,7 @@ class ListActivity : AppCompatActivity() {
 
     override fun onBackPressed() {
         if (searching) {
-            tag_group_manager.hide()
+//            tag_group_manager.hide()
 //            newsAdapter.updateGroupNotesList()
             searching = false
             searchView.onActionViewCollapsed()
@@ -205,13 +173,13 @@ class ListActivity : AppCompatActivity() {
 
         // open searchView
         searchView.setOnSearchClickListener {
-            tag_group_manager.show()
+//            tag_group_manager.show()
             searching = true
         }
 
         // close searchView
         searchView.setOnCloseListener {
-            tag_group_manager.hide()
+//            tag_group_manager.hide()
             newsAdapter.finishSearch()
 //            newsAdapter.updateGroupNotesList()
             searching = false
@@ -221,42 +189,19 @@ class ListActivity : AppCompatActivity() {
         // search
         searchView.setOnQueryTextListener(object : SearchView.OnQueryTextListener {
             override fun onQueryTextSubmit(query: String): Boolean {
-                performSearch(query, tag_group_manager)
+//                performSearch(query, tag_group_manager)
                 return true
             }
 
             override fun onQueryTextChange(newText: String): Boolean {
-                performSearch(newText, tag_group_manager)
+//                performSearch(newText, tag_group_manager)
                 return true
             }
         })
-
-        // click tag
-        tag_group_manager.setOnTagClickListener(object : TagView.OnTagClickListener {
-            override fun onTagClick(position: Int, text: String) {
-                tag_group_manager!!.switchCheckedState(position)
-                performSearch(searchView.query.toString(), tag_group_manager)
-            }
-
-            override fun onTagLongClick(position: Int, text: String) {
-                // do nothing
-            }
-
-            override fun onTagCrossClick(position: Int) {
-                // do nothing
-            }
-        })
     }
 
-    private fun performSearch(query: String, tag_group_manager: TagManager) {
-        val tags = tag_group_manager.checkedTags
-        newsAdapter.doSearch(query, tags)
-    }
-}
-
-
-// todo: wtf
-//    override fun onResume() {
-//        newsAdapter.updateGroupNotesList()
-//        super.onResume()
+//    private fun performSearch(query: String, tag_group_manager: TagManager) {
+//        val tags = tag_group_manager.checkedTags
+//        newsAdapter.doSearch(query, tags)
 //    }
+}

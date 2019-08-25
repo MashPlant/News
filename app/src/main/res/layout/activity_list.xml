@@ -20,20 +20,6 @@
                 android:layout_height="?attr/actionBarSize"
                 app:title="@string/list_title"/>
 
-        <com.java.lichenhao.TagManager
-                android:id="@+id/tag_group_manager"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:layout_margin="0dp"
-                android:padding="10dp"
-                android:visibility="invisible"
-                app:container_border_width="5dp"
-                app:horizontal_interval="10dp"
-                app:tag_clickable="true"
-                app:tag_max_length="8"
-                app:tag_ripple_duration="300"
-                app:vertical_interval="10dp"/>
-
         <com.marshalchen.ultimaterecyclerview.UltimateRecyclerView
                 android:id="@+id/news_list"
                 android:layout_width="match_parent"

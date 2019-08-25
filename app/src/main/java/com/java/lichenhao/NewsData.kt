@@ -142,7 +142,7 @@ object NewsData {
     }
 
     // 这里并不进行io，数据是在AccountManager中读到FILE_INPUT_XXX中的
-     fun loadFromFile(decrypt: Cipher) {
+    fun loadFromFile(decrypt: Cipher) {
         val fi = GLOBAL_CONTEXT.openFileInput("$NEWS_FILE_NAME-$USERNAME")
         val bytes = CipherInputStream(fi, decrypt).use { it.readBytes() }
         val parcel = Parcel.obtain()
@@ -165,7 +165,7 @@ object NewsData {
     fun doSearch(keywords: String, tags: List<String>?) {
         val keywordSet = keywords.split(' ').toHashSet()
         val result = ArrayList<NewsExt>()
-        for (x in NewsData.curNews) {
+        for (x in curNews) {
             for (kw in x.news.keywords) {
                 if (keywordSet.contains(kw.word)) {
                     result.add(x)
@@ -179,9 +179,7 @@ object NewsData {
         prevKindId = curKindId
         curKindId = SEARCH_IDX
         val searchNews = allNews[SEARCH_IDX]
-        for (x in searchNews) {
-            x.clear()
-        }
+        searchNews.forEach(ArrayList<NewsExt>::clear)
         for (news in newsList) {
             addInternal(news, searchNews)
         }
@@ -239,8 +237,14 @@ object NewsData {
         val news = curNews[position]
         curNews.removeAt(position)
         when (curKindId) {
-            FAVORITE_IDX -> news.favorite = false
-            READ_IDX -> news.read = false
+            FAVORITE_IDX -> {
+                news.favorite = false
+                newsSet[FAVORITE_IDX - FAVORITE_IDX].remove(news.news)
+            }
+            READ_IDX -> {
+                news.read = false
+                newsSet[READ_IDX - FAVORITE_IDX].remove(news.news)
+            }
         }
         val curKind = allNews[curKindId]
         when (curCategoryId) {

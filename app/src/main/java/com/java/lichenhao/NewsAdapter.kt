@@ -1,8 +1,10 @@
 package com.java.lichenhao
 
+import android.annotation.SuppressLint
 import android.content.Intent
 import android.graphics.Bitmap
 import android.graphics.BitmapFactory
+import android.graphics.Color
 import android.support.v7.widget.RecyclerView
 import android.util.DisplayMetrics
 import android.view.LayoutInflater
@@ -112,15 +114,19 @@ class NewsAdapter(private val activity: ListActivity, news_list: UltimateRecycle
         val news = NewsData.curNews[position].news
         with(holder) {
             if (newsExt.read) {
-                layout.setBackgroundColor(0x00F0F0F0)
-            } else {
-                layout.setBackgroundColor(0x00FFFFFF)
+                layout.setBackgroundColor(Color.LTGRAY)
             }
+            val r = resources
             title.text = news.title
-            content.text = resources.getString(R.string.news_preview_content, news.content)
-            category.text = resources.getString(R.string.news_preview_category, news.category)
-            publishTime.text = resources.getString(R.string.news_preview_publish_time, news.publishTime)
-            publisher.text = resources.getString(R.string.news_preview_publisher, news.publisher)
+            @SuppressLint
+            content.text = r.getString(R.string.news_preview_content) + news.content
+            @SuppressLint
+            category.text = r.getString(R.string.news_preview_category) + news.category
+            @SuppressLint
+            publishTime.text = r.getString(R.string.news_preview_publish_time) + news.publishTime
+            @SuppressLint
+            publisher.text = r.getString(R.string.news_preview_publisher) + news.publisher +
+                    if (newsExt.read) r.getString(R.string.read_string) else "" + if (newsExt.favorite) r.getString(R.string.favorite_string) else ""
             val curTimeTag = this@NewsAdapter.timeTag++ // 这个是在主线程，不必担心
             timeTag = curTimeTag
             if (news.imageList.isEmpty()) {
@@ -182,6 +188,7 @@ class NewsAdapter(private val activity: ListActivity, news_list: UltimateRecycle
             NEWS_ACTIVITY_INTENT_ARG = selected
             selected.read = true
             NewsData.add(selected, READ_IDX)
+            notifyDataSetChanged()
             activity.startActivity(Intent(activity, NewsActivity::class.java))
         }
 
