@@ -23,7 +23,7 @@ const val RECOMMEND_IDX = 4
 
 const val ALL_IDX = 0
 
-// AccountManager.initAdapterGlobals中初始化
+// AccountManager.initGlobals中初始化
 lateinit var ALL_KIND: Array<String>
 lateinit var ALL_CATEGORY: Array<String>
 
@@ -32,7 +32,7 @@ lateinit var USERNAME: String
 // 只用来加密
 lateinit var CIPHER: Cipher
 
-const val NEWS_FILE_NAME = "News"
+const val NEWS_FILENAME = "News"
 
 const val GET_COUNT = 100
 const val RECOMMEND_COUNT = 200
@@ -144,7 +144,7 @@ object NewsData {
 
     // 这里并不进行io，数据是在AccountManager中读到FILE_INPUT_XXX中的
     fun loadFromFile(decrypt: Cipher) {
-        val fi = GLOBAL_CONTEXT.openFileInput("$NEWS_FILE_NAME-$USERNAME")
+        val fi = GLOBAL_CONTEXT.openFileInput("$NEWS_FILENAME-$USERNAME")
         val bytes = CipherInputStream(fi, decrypt).use { it.readBytes() }
         val parcel = Parcel.obtain()
         parcel.unmarshall(bytes, 0, bytes.size)
@@ -231,7 +231,7 @@ object NewsData {
             val parcel = Parcel.obtain()
             parcel.writeTypedList(allNews[FAVORITE_IDX][ALL_IDX])
             parcel.writeTypedList(allNews[READ_IDX][ALL_IDX])
-            val fo = GLOBAL_CONTEXT.openFileOutput("$NEWS_FILE_NAME-$USERNAME", Context.MODE_PRIVATE)
+            val fo = GLOBAL_CONTEXT.openFileOutput("$NEWS_FILENAME-$USERNAME", Context.MODE_PRIVATE)
             CipherOutputStream(fo, CIPHER).use { it.write(parcel.marshall()) }
             parcel.recycle()
         }

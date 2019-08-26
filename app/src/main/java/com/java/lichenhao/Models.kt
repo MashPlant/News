@@ -4,6 +4,7 @@ import android.graphics.Bitmap
 import android.graphics.BitmapFactory
 import android.os.Parcelable
 import com.github.kittinunf.fuel.core.FuelError
+import com.github.kittinunf.fuel.httpDownload
 import com.github.kittinunf.fuel.httpGet
 import com.github.kittinunf.result.Result
 import com.github.kittinunf.result.map
@@ -11,6 +12,7 @@ import com.github.kittinunf.result.success
 import com.google.gson.annotations.SerializedName
 import kotlinx.android.parcel.IgnoredOnParcel
 import kotlinx.android.parcel.Parcelize
+import java.io.File
 
 // 这些data class里使用List没有任何价值，直接用Array即可
 // 警告的"建议实现equals/hashCode"不用理，没有实现的类都不会用到这些方法
@@ -29,19 +31,40 @@ data class NewsExt(
     val news: News,
     var read: Boolean, // 已读
     var favorite: Boolean,
-    val imageBitmapList: Array<ByteArray?> // 下载的图片具体内容，下标和news.imageList一一对应
+    val imageDataList: Array<ByteArray?>, // 下载的图片具体内容，下标和news.imageList一一对应
+    var videoPath: String? // 下载的视频直接保存到文件中
 ) : Parcelable {
-    constructor(news: News) : this(news, NewsData.isRead(news), NewsData.isFavorite(news), arrayOfNulls(news.imageList.size))
+    constructor(news: News) : this(
+        news,
+        NewsData.isRead(news),
+        NewsData.isFavorite(news),
+        arrayOfNulls(news.imageList.size),
+        null
+    )
 
     inline fun downloadImage(which: Int, crossinline handler: (Result<Bitmap, FuelError>) -> Unit) {
-        imageBitmapList[which]?.let {
+        imageDataList[which]?.let {
             handler(Result.success(BitmapFactory.decodeByteArray(it, 0, it.size)))
             return
         }
         news.imageList[which].httpGet().response { _, _, result ->
             result.map { BitmapFactory.decodeByteArray(it, 0, it.size) }.apply(handler)
-            result.success { imageBitmapList[which] = it }
+            result.success { imageDataList[which] = it }
         }
+    }
+
+    // 调用者保证news.video非空
+    // handler处理的是视频文件名(因为视频播放器库不接受视频内容，只接受url)
+    inline fun downloadVideo(crossinline handler: (String) -> Unit) {
+        val video = news.video!!
+        val videoPath = videoPath ?: run {
+            handler(video) // 如果没有本地下载，则直接播放video网址(这样用户不需要等待)
+            val path = "${GLOBAL_CONTEXT.filesDir.absolutePath}/video${System.currentTimeMillis()}.mp4"
+            video.httpDownload().fileDestination { _, _ -> File(path) }.response { _, _, _ -> } // 不阻塞，也不管它什么时候结束
+            videoPath = path
+            return
+        }
+        handler(videoPath) // 有本地下载，播放文件
     }
 
     override fun equals(other: Any?) = other is NewsExt && news == other.news
@@ -49,14 +72,15 @@ data class NewsExt(
     override fun hashCode() = news.hashCode()
 }
 
+// imageString和video的"为空"，极大概率是空字符串，但也有可能是不存在
 @Parcelize
 data class News(
     @SerializedName("image")
-    val imageString: String, //新闻插图，可能为空(非空时格式是正常的json数组)
+    val imageString: String?, //新闻插图，可能为空(非空时格式是正常的json数组)
     val publishTime: String,  //新闻发布时间，部分新闻由于自身错误可能时间会很大(如9102年)
     val keywords: Array<Keyword>, //关键词
     val language: String, //新闻语言
-    val video: String, //视频，一般为空
+    val video: String?, //视频，一般为空
     val title: String, //新闻题目
     val `when`: Array<When>, //新闻中相关时间和相关度
     val content: String, //正文
@@ -75,7 +99,7 @@ data class News(
 
     val imageList: List<String>
         get() = _imageList ?: run {
-            val tmp = imageString
+            val tmp = (imageString ?: "")
                 .replace("[", "").replace("]", "")
                 .split(',')
                 .map { it.trim() }

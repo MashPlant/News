@@ -8,6 +8,7 @@ import kotlinx.android.parcel.Parcelize
 import java.io.IOException
 import java.security.MessageDigest
 import javax.crypto.Cipher
+import javax.crypto.CipherInputStream
 import javax.crypto.SecretKeyFactory
 import javax.crypto.spec.PBEKeySpec
 import javax.crypto.spec.PBEParameterSpec
@@ -81,7 +82,7 @@ class AccountManager(private val context: Context) {
     }
 }
 
-fun initAdapterGlobals(username: String, password: String) {
+fun initGlobals(username: String, password: String) {
     val password1 = password.toCharArray()
     ALL_KIND = GLOBAL_CONTEXT.resources.getStringArray(R.array.kinds)
     ALL_CATEGORY = GLOBAL_CONTEXT.resources.getStringArray(R.array.categories)
@@ -90,7 +91,18 @@ fun initAdapterGlobals(username: String, password: String) {
     try {
         NewsData.loadFromFile(makeCipher(password1, Cipher.DECRYPT_MODE))
     } catch (e: IOException) { // 正常，应该是文件还不存在
-        Log.e("initAdapterGlobals", e.toString())
+        Log.e("initGlobals", e.toString())
+    }
+    try {
+        val fi = GLOBAL_CONTEXT.openFileInput("$HISTORY_FILENAME-$USERNAME")
+        val bytes = CipherInputStream(fi, makeCipher(password1, Cipher.DECRYPT_MODE)).use { it.readBytes() }
+        val parcel = Parcel.obtain()
+        parcel.unmarshall(bytes, 0, bytes.size)
+        parcel.setDataPosition(0)
+        parcel.readStringList(HISTORY)
+        parcel.recycle()
+    } catch (e: IOException) { // 正常，应该是文件还不存在
+        Log.e("initGlobals", e.toString())
     }
 }
 

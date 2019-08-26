@@ -23,7 +23,7 @@ class SplashActivity : Activity() {
         private val ref = WeakReference(ref)
 
         override fun doInBackground(vararg voids: Void?): Void? {
-            initAdapterGlobals(input.username, input.password)
+            initGlobals(input.username, input.password)
             return null
         }
 

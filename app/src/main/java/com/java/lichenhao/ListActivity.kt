@@ -8,18 +8,28 @@ import android.support.v7.app.AppCompatActivity
 import android.support.v7.app.AppCompatDelegate
 import android.support.v7.widget.LinearLayoutManager
 import android.support.v7.widget.SearchView
-import android.view.Menu
-import android.view.MenuItem
-import android.view.SubMenu
-import android.view.View
 
 import kotlinx.android.synthetic.main.activity_list.*
+import android.database.MatrixCursor
+import android.app.SearchManager
+import android.content.Context
+import android.provider.BaseColumns
+import android.view.*
+import android.support.v4.widget.SimpleCursorAdapter
+import android.database.Cursor
+import android.os.Parcel
+import org.jetbrains.anko.doAsync
+import org.jetbrains.anko.uiThread
+import javax.crypto.CipherOutputStream
+
+
+const val HISTORY_FILENAME = "History"
+
+// AccountManager.initGlobals中初始化
+var HISTORY = ArrayList<String>()
 
 class ListActivity : AppCompatActivity() {
     private lateinit var newsAdapter: NewsAdapter
-
-    private lateinit var searchView: SearchView
-    private lateinit var searchItem: MenuItem
 
     private var prevCheckKind = R.id.nav_kind0
     private var prevCheckCategory = R.id.nav_category0
@@ -48,18 +58,50 @@ class ListActivity : AppCompatActivity() {
         initDrawerToggle()
     }
 
-    // options menu
     override fun onCreateOptionsMenu(menu: Menu): Boolean {
-        // search
         menuInflater.inflate(R.menu.activity_list, menu)
-        searchItem = menu.findItem(R.id.action_search)
-        searchView = searchItem.actionView as SearchView
-        initSearchView()
+        val sv = menu.findItem(R.id.action_search).actionView as SearchView
+        sv.queryHint = resources.getString(R.string.list_search_hint)
+        sv.isSubmitButtonEnabled = true
 
-        // launch from short cut
-        if (intent.hasExtra("SEARCH")) {
-            searchView.onActionViewExpanded()
+        sv.setOnCloseListener {
+            newsAdapter.finishSearch()
+            kindMenu.findItem(R.id.nav_kind0).isChecked = true // 回到最初的分类：最新(避免麻烦，懒得记录搜索前的分类)
+            kindMenu.findItem(R.id.nav_kind3).isChecked = false // 搜索结果一栏
+            prevCheckKind = R.id.nav_kind0
+            false
         }
+        sv.findViewById<SearchView.SearchAutoComplete>(android.support.v7.appcompat.R.id.search_src_text).threshold = 0
+        val searchManager = getSystemService(Context.SEARCH_SERVICE) as SearchManager
+        sv.setSearchableInfo(searchManager.getSearchableInfo(componentName))
+        val coNames = arrayOf(SearchManager.SUGGEST_COLUMN_TEXT_1)
+        val viewIds = intArrayOf(android.R.id.text1)
+        val adapter = SimpleCursorAdapter(this, android.R.layout.simple_list_item_1, makeCursor(), coNames, viewIds)
+        sv.suggestionsAdapter = adapter
+
+
+        sv.setOnQueryTextListener(object : SearchView.OnQueryTextListener {
+            override fun onQueryTextSubmit(query: String): Boolean {
+                doSearch(query)
+                doAsync {
+                    HISTORY.add(0, query) // 逆序
+                    val parcel = Parcel.obtain()
+                    parcel.writeStringList(HISTORY)
+                    val fo = GLOBAL_CONTEXT.openFileOutput("$HISTORY_FILENAME-$USERNAME", Context.MODE_PRIVATE)
+                    CipherOutputStream(fo, CIPHER).use { it.write(parcel.marshall()) }
+                    parcel.recycle()
+                    uiThread {
+                        adapter.swapCursor(makeCursor())
+                    }
+                }
+                return true
+            }
+
+            override fun onQueryTextChange(newText: String): Boolean {
+                doSearch(newText)
+                return true
+            }
+        })
 
         if (AppCompatDelegate.getDefaultNightMode() == AppCompatDelegate.MODE_NIGHT_YES) {
             menu.findItem(R.id.nightMode).title = "夜间模式（开）"
@@ -153,35 +195,19 @@ class ListActivity : AppCompatActivity() {
         }
     }
 
-    private fun initSearchView() {
-        searchView.queryHint = resources.getString(R.string.list_search_hint)
-        searchView.isSubmitButtonEnabled = true
-
-        searchView.setOnCloseListener {
-            newsAdapter.finishSearch()
-            kindMenu.findItem(R.id.nav_kind0).isChecked = true // 回到最初的分类：最新(避免麻烦)
-            kindMenu.findItem(R.id.nav_kind3).isChecked = false // 搜索结果一栏
-            prevCheckKind = R.id.nav_kind0
-            false
-        }
-
-        searchView.setOnQueryTextListener(object : SearchView.OnQueryTextListener {
-            override fun onQueryTextSubmit(query: String): Boolean {
-                doSearch(query)
-                return true
-            }
-
-            override fun onQueryTextChange(newText: String): Boolean {
-                doSearch(newText)
-                return true
-            }
-        })
-    }
-
     private fun doSearch(query: String) {
         newsAdapter.doSearch(query)
         kindMenu.findItem(prevCheckKind).isChecked = false
         kindMenu.findItem(R.id.nav_kind3).isChecked = true // 搜索结果一栏
         prevCheckKind = R.id.nav_kind3
     }
+}
+
+private fun makeCursor(): Cursor {
+    val menuCols = arrayOf(BaseColumns._ID, SearchManager.SUGGEST_COLUMN_TEXT_1)
+    val cursor = MatrixCursor(menuCols)
+    for ((idx, history) in HISTORY.withIndex()) {
+        cursor.addRow(arrayOf(idx, history))
+    }
+    return cursor
 }

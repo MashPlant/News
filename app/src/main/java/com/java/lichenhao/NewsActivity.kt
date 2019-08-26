@@ -5,7 +5,7 @@ import android.graphics.Bitmap
 import android.os.Bundle
 import android.support.v7.app.AppCompatActivity
 import android.view.MenuItem
-import android.view.View.GONE
+import android.view.View
 import android.widget.ArrayAdapter
 import com.github.kittinunf.fuel.gson.responseObject
 import com.github.kittinunf.fuel.httpGet
@@ -76,9 +76,15 @@ class NewsActivity : AppCompatActivity() {
                         it.success { img1 -> img.setImageBitmap(scale(img1, img.width)) }
                     }
                 } else {
-                    img.visibility = GONE
+                    img.visibility = View.GONE
                 }
             }
+        }
+
+        if (!news.video.isNullOrEmpty()) {
+            newsExt.downloadVideo { url -> news_video.setUp(url, "") }
+        } else {
+            news_video.visibility = View.GONE
         }
 
         val listItems = ArrayList<String>()
@@ -108,11 +114,15 @@ class NewsActivity : AppCompatActivity() {
     }
 
     override fun onOptionsItemSelected(item: MenuItem?): Boolean {
-        item?.let {
-            when (it.itemId) {
-                android.R.id.home -> finish()
-            }
+        if (item?.itemId ?: 0 == android.R.id.home) {
+            finish()
         }
         return super.onOptionsItemSelected(item)
+    }
+
+    override fun onDestroy() {
+        // 这个activity中可能下载了新的图片，所以需要保存一下
+        NewsData.maybeStoreToFile()
+        super.onDestroy()
     }
 }
