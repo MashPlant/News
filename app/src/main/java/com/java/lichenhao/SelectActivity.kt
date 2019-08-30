@@ -199,8 +199,17 @@ class SelectActivity : AppCompatActivity() {
             }
 
             override fun onQueryTextSubmit(q: String): Boolean {
-                listItems.add(0, q)
-                if (listItems.size >= MAX_HISTORY) {
+                var flag = true
+                for (str in listItems) {
+                    if (str.equals(q)) {
+                        flag = false
+                        break
+                    }
+                }
+                if (flag) {
+                    listItems.add(0, q)
+                }
+                if (listItems.size > MAX_HISTORY) {
                     listItems.removeAt(MAX_HISTORY - 1)
                 }
                 adapter?.notifyDataSetChanged()
