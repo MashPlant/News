@@ -9,6 +9,10 @@
         android:title="@string/news_delete" />
 
     <item
-        android:id="@+id/share"
-        android:title="@string/news_share" />
+        android:id="@+id/shareText"
+        android:title="@string/news_share_text" />
+    
+    <item
+        android:id="@+id/shareImage"
+        android:title="@string/news_share_image" />
 </menu>

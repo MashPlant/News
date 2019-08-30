@@ -16,6 +16,8 @@
     <string name="news_favorite">收藏</string>
     <string name="news_delete">删除</string>
     <string name="news_share">分享</string>
+    <string name="news_share_text">分享（仅文字）</string>
+    <string name="news_share_image">分享（仅图片）</string>
 
     <string name="news_preview_content">内容摘要: </string>
     <string name="news_preview_category">类别: </string>

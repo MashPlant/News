@@ -5,8 +5,11 @@ import android.content.Intent
 import android.graphics.Bitmap
 import android.graphics.BitmapFactory
 import android.graphics.Color
+import android.net.Uri
+import android.provider.MediaStore
 import android.support.v7.widget.RecyclerView
 import android.util.DisplayMetrics
+import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
@@ -20,6 +23,8 @@ import com.marshalchen.ultimaterecyclerview.UltimateRecyclerView
 
 import com.marshalchen.ultimaterecyclerview.UltimateRecyclerviewViewHolder
 import com.marshalchen.ultimaterecyclerview.UltimateViewAdapter
+import kotlin.math.max
+
 
 class NewsAdapter(private val activity: ListActivity, news_list: UltimateRecyclerView) :
     UltimateViewAdapter<NewsAdapter.ViewHolder>() {
@@ -205,8 +210,26 @@ class NewsAdapter(private val activity: ListActivity, news_list: UltimateRecycle
                         NewsData.remove(adapterPosition)
                         notifyDataSetChanged()
                     }
-                    R.id.share -> {
-                    } // todo
+                    R.id.shareText -> {
+                        val news = NewsData.curNews[adapterPosition].news
+                        val mIntent = Intent(Intent.ACTION_SEND)
+                        mIntent.putExtra(Intent.EXTRA_TEXT, "标题：\n" + news.title + "\n" + "正文：\n" + news.content + "...")
+                        mIntent.type = "text/plain"
+                        activity.startActivity(Intent.createChooser(mIntent, "分享文本"))
+                    }
+                    R.id.shareImage -> {
+                        val newsExt = NewsData.curNews[adapterPosition]
+                        val mIntent = Intent(Intent.ACTION_SEND)
+                        if (newsExt.imageDataList.isNotEmpty()) {
+                            val byteArray = newsExt.imageDataList[0]
+                            val bitmap = BitmapFactory.decodeByteArray(byteArray, 0, byteArray!!.size)
+                            val path = MediaStore.Images.Media.insertImage(context.contentResolver, bitmap, "Title", null)
+                            val imageUri = Uri.parse(path)
+                            mIntent.putExtra(Intent.EXTRA_STREAM, imageUri)
+                            mIntent.type = "image/*"
+                            activity.startActivity(Intent.createChooser(mIntent, "分享图片"))
+                        }
+                    }
                 }
                 true
             }
