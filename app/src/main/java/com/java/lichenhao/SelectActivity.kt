@@ -151,9 +151,9 @@ class SelectActivity : AppCompatActivity() {
     override fun onDestroy() {
         var index: Int = 0
         val his = getSharedPreferences(searchHistory_sharePreferenceName, Context.MODE_PRIVATE)
-        val ed =his.edit()
+        val ed = his.edit()
         while (index < listItems.size) {
-            ed.putString(index.toString(), listItems[index])
+            ed.putString(USERNAME + index.toString(), listItems[index])
             ++index
         }
         ed.commit()
@@ -174,8 +174,8 @@ class SelectActivity : AppCompatActivity() {
         val his = getSharedPreferences(searchHistory_sharePreferenceName, Context.MODE_PRIVATE)
         var index: Int = 0
         while (index < MAX_HISTORY) {
-            if (!his.getString(index.toString(), "").equals("")) {
-                listItems.add(his.getString(index.toString(), ""))
+            if (!(his.getString(USERNAME + index.toString(), "")).equals("")) {
+                listItems.add(his.getString(USERNAME + index.toString(), ""))
             }
             ++index
         }
@@ -210,7 +210,7 @@ class SelectActivity : AppCompatActivity() {
                     listItems.add(0, q)
                 }
                 if (listItems.size > MAX_HISTORY) {
-                    listItems.removeAt(MAX_HISTORY - 1)
+                    listItems.removeAt(MAX_HISTORY)
                 }
                 adapter?.notifyDataSetChanged()
                 var query = Query(
