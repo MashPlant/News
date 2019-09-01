@@ -7,6 +7,8 @@
     <string name="list_sort">排序</string>
     <string name="list_sort_title">按标题排序</string>
     <string name="list_sort_publish_time">按发布时间排序</string>
+    <string name="list_sort_title_rev">按标题逆序</string>
+    <string name="list_sort_publish_time_rev">按发布时间逆序</string>
     <string name="list_clear">清空本页</string>
 
     <string name="group_all_news">All News</string>

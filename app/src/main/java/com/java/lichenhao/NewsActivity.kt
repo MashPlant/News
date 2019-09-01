@@ -2,11 +2,17 @@ package com.java.lichenhao
 
 import android.content.Intent
 import android.graphics.Bitmap
+import android.graphics.BitmapFactory
+import android.net.Uri
 import android.os.Bundle
+import android.provider.MediaStore
 import android.support.v7.app.AppCompatActivity
+import android.util.Log
+import android.view.Menu
 import android.view.MenuItem
 import android.view.View
 import android.widget.ArrayAdapter
+import android.widget.Toast
 import com.github.kittinunf.fuel.gson.responseObject
 import com.github.kittinunf.fuel.httpGet
 import com.github.kittinunf.result.success
@@ -17,6 +23,7 @@ import java.net.URLEncoder
 
 // Intent里放不下这么大(可能带图片)的数据(也完全没必要复制一遍)，直接用全局变量传参了
 var NEWS_ACTIVITY_INTENT_ARG: NewsExt? = null
+var NEWS_ACTIVITY_INTENT_ARG_ADAPTOR_POSITION = 0
 
 data class RecommendNews(
     var data: News,
@@ -113,9 +120,47 @@ class NewsActivity : AppCompatActivity() {
         }
     }
 
+    override fun onCreateOptionsMenu(menu: Menu): Boolean {
+        menuInflater.inflate(R.menu.list_item_options, menu)
+        return super.onCreateOptionsMenu(menu)
+    }
+
     override fun onOptionsItemSelected(item: MenuItem?): Boolean {
-        if (item?.itemId ?: 0 == android.R.id.home) {
-            finish()
+        val newsExt = NEWS_ACTIVITY_INTENT_ARG!!
+        when (item?.itemId ?: 0) {
+            android.R.id.home -> finish()
+            R.id.favorite -> {
+                newsExt.favorite = true
+                NewsData.add(newsExt, FAVORITE_IDX)
+            }
+            R.id.delete -> {
+                NewsData.remove(NEWS_ACTIVITY_INTENT_ARG_ADAPTOR_POSITION)
+            }
+            R.id.shareText -> {
+                val news = newsExt.news
+                val mIntent = Intent(Intent.ACTION_SEND)
+                mIntent.putExtra(
+                    Intent.EXTRA_TEXT,
+                    "标题：\n" + news.title + "\n" + "正文：\n" + news.content + "..."
+                )
+                mIntent.type = "text/plain"
+                startActivity(Intent.createChooser(mIntent, "分享文本"))
+            }
+            R.id.shareImage -> {
+                val mIntent = Intent(Intent.ACTION_SEND)
+                if (newsExt.imageDataList.isNotEmpty()) {
+                    val byteArray = newsExt.imageDataList[0]
+                    val bitmap = BitmapFactory.decodeByteArray(byteArray, 0, byteArray!!.size)
+                    val path =
+                        MediaStore.Images.Media.insertImage(contentResolver, bitmap, "Title", null)
+                    val imageUri = Uri.parse(path)
+                    mIntent.putExtra(Intent.EXTRA_STREAM, imageUri)
+                    mIntent.type = "image/*"
+                    startActivity(Intent.createChooser(mIntent, "分享图片"))
+                } else {
+                    Toast.makeText(this, "这个新闻没有图片", Toast.LENGTH_SHORT).show()
+                }
+            }
         }
         return super.onOptionsItemSelected(item)
     }

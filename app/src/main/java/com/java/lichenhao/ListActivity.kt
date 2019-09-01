@@ -114,6 +114,11 @@ class ListActivity : AppCompatActivity() {
         return super.onCreateOptionsMenu(menu)
     }
 
+    override fun onResume() {
+        newsAdapter.notifyDataSetChanged()
+        super.onResume()
+    }
+
     override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
         if (requestCode == 42 && data != null) {
             val response = data.getParcelableExtra<Response>("SelectActivityResult")
@@ -134,11 +139,19 @@ class ListActivity : AppCompatActivity() {
             R.id.clear -> newsAdapter.clear()
             R.id.sort_title -> {
                 item.isChecked = true
-                newsAdapter.sortBy { it.title }
+                newsAdapter.sortBy({ it.title })
             }
             R.id.sort_publish_time -> {
                 item.isChecked = true
-                newsAdapter.sortBy { it.publishTime }
+                newsAdapter.sortBy({ it.publishTime })
+            }
+            R.id.sort_title_rev -> {
+                item.isChecked = true
+                newsAdapter.sortBy({ it.title }, true)
+            }
+            R.id.sort_publish_time_rev -> {
+                item.isChecked = true
+                newsAdapter.sortBy({ it.publishTime }, true)
             }
             R.id.nightMode -> {
                 if (AppCompatDelegate.getDefaultNightMode() == AppCompatDelegate.MODE_NIGHT_YES) {

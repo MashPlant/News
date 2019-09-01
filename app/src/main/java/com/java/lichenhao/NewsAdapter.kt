@@ -5,8 +5,10 @@ import android.content.Intent
 import android.graphics.Bitmap
 import android.graphics.BitmapFactory
 import android.graphics.Color
+import android.graphics.drawable.ColorDrawable
 import android.net.Uri
 import android.provider.MediaStore
+import android.support.v7.app.AppCompatDelegate
 import android.support.v7.widget.RecyclerView
 import android.util.DisplayMetrics
 import android.util.Log
@@ -93,8 +95,12 @@ class NewsAdapter(private val activity: ListActivity, news_list: UltimateRecycle
         notifyDataSetChanged()
     }
 
-    inline fun <R : Comparable<R>> sortBy(crossinline selector: (News) -> R?) {
-        NewsData.curNews.sortBy { selector(it.news) }
+    inline fun <R : Comparable<R>> sortBy(crossinline selector: (News) -> R?, rev: Boolean = false) {
+        if (rev) {
+            NewsData.curNews.sortByDescending { selector(it.news) }
+        } else {
+            NewsData.curNews.sortBy { selector(it.news) }
+        }
         NewsData.maybeStoreToFile()
         notifyDataSetChanged()
     }
@@ -118,7 +124,11 @@ class NewsAdapter(private val activity: ListActivity, news_list: UltimateRecycle
         val newsExt = NewsData.curNews[position]
         val news = NewsData.curNews[position].news
         with(holder) {
-            layout.setBackgroundColor(if (newsExt.read) Color.LTGRAY else Color.WHITE)
+            if (newsExt.read) {
+                layout.setBackgroundColor(if (AppCompatDelegate.getDefaultNightMode() == AppCompatDelegate.MODE_NIGHT_YES) Color.DKGRAY else Color.LTGRAY)
+            } else {
+                layout.background = null
+            }
             val r = resources
             title.text = news.title
             @SuppressLint
@@ -189,6 +199,7 @@ class NewsAdapter(private val activity: ListActivity, news_list: UltimateRecycle
         override fun onClick(v: View) {
             val selected = NewsData.curNews[adapterPosition]
             NEWS_ACTIVITY_INTENT_ARG = selected
+            NEWS_ACTIVITY_INTENT_ARG_ADAPTOR_POSITION = adapterPosition
             selected.read = true
             NewsData.add(selected, READ_IDX)
             notifyDataSetChanged()
@@ -213,7 +224,10 @@ class NewsAdapter(private val activity: ListActivity, news_list: UltimateRecycle
                     R.id.shareText -> {
                         val news = NewsData.curNews[adapterPosition].news
                         val mIntent = Intent(Intent.ACTION_SEND)
-                        mIntent.putExtra(Intent.EXTRA_TEXT, "标题：\n" + news.title + "\n" + "正文：\n" + news.content + "...")
+                        mIntent.putExtra(
+                            Intent.EXTRA_TEXT,
+                            "标题：\n" + news.title + "\n" + "正文：\n" + news.content + "..."
+                        )
                         mIntent.type = "text/plain"
                         activity.startActivity(Intent.createChooser(mIntent, "分享文本"))
                     }
@@ -223,11 +237,14 @@ class NewsAdapter(private val activity: ListActivity, news_list: UltimateRecycle
                         if (newsExt.imageDataList.isNotEmpty()) {
                             val byteArray = newsExt.imageDataList[0]
                             val bitmap = BitmapFactory.decodeByteArray(byteArray, 0, byteArray!!.size)
-                            val path = MediaStore.Images.Media.insertImage(context.contentResolver, bitmap, "Title", null)
+                            val path =
+                                MediaStore.Images.Media.insertImage(context.contentResolver, bitmap, "Title", null)
                             val imageUri = Uri.parse(path)
                             mIntent.putExtra(Intent.EXTRA_STREAM, imageUri)
                             mIntent.type = "image/*"
                             activity.startActivity(Intent.createChooser(mIntent, "分享图片"))
+                        } else {
+                            Toast.makeText(activity, "这个新闻没有图片", Toast.LENGTH_SHORT).show()
                         }
                     }
                 }
