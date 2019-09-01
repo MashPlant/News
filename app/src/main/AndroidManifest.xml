@@ -44,10 +44,6 @@
                 <category android:name="android.intent.category.DEFAULT"/>
                 <data android:mimeType="*/*"/>
             </intent-filter>
-            <!--add static shortcut-->
-            <meta-data
-                    android:name="android.app.shortcuts"
-                    android:resource="@xml/static_shortcut"/>
         </activity>
 
         <activity android:name=".NewsActivity">
