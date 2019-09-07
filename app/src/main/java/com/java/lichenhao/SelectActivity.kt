@@ -2,15 +2,12 @@ package com.java.lichenhao
 
 import android.app.DatePickerDialog
 import android.content.Context
-import android.content.SharedPreferences
-import android.net.sip.SipSession
 import kotlinx.android.synthetic.main.content_select.*
 
 import android.os.Bundle
 import android.support.v7.app.AppCompatActivity
-import android.support.v7.app.AppCompatDelegate
 import android.util.Log
-import android.view.Menu
+import android.view.KeyEvent
 import android.view.View
 import android.widget.*
 import java.util.*
@@ -18,15 +15,8 @@ import java.util.*
 import com.github.kittinunf.fuel.gson.responseObject
 import com.github.kittinunf.fuel.httpGet
 import com.github.kittinunf.result.Result
-import kotlinx.android.synthetic.main.content_select.view.*
 import java.net.URLEncoder
 import java.text.SimpleDateFormat
-import java.util.GregorianCalendar
-import android.app.Activity
-import android.content.Intent
-import android.widget.AdapterView
-
-
 
 
 const val BASE_URL = "https://api2.newsminer.net/svc/news/queryNewsList?"
@@ -43,7 +33,6 @@ data class Query(
 
 class SelectActivity : AppCompatActivity() {
 
-    val query: Query? = null
     var listItems = ArrayList<String>()
     var adapter: ArrayAdapter<String>? = null
     val searchHistory_sharePreferenceName = "searchHistory"
@@ -54,10 +43,6 @@ class SelectActivity : AppCompatActivity() {
         val year = c.get(Calendar.YEAR) - 1
         val month = c.get(Calendar.MONTH) + 1
         val day = c.get(Calendar.DAY_OF_MONTH)
-
-//        Log.e("year", "" + year)
-//        Log.e("month", "" + month)
-//        Log.e("day", "" + day)
 
         val y = year.toString()
         var m = month.toString()
@@ -187,6 +172,12 @@ class SelectActivity : AppCompatActivity() {
         )
         searchHistory.adapter = adapter
 
+        dislike.setOnKeyListener { _, keyCode, _ ->
+            if (keyCode == KeyEvent.KEYCODE_ENTER) {
+                searchNews.setQuery(searchNews.query, true)
+                true
+            } else false
+        }
         searchHistory.setOnItemClickListener { adapterView, view, i, l ->
             val touch = adapterView.getItemAtPosition(i) as String
             searchNews.setQuery(touch, false)
@@ -213,7 +204,7 @@ class SelectActivity : AppCompatActivity() {
                     listItems.removeAt(MAX_HISTORY)
                 }
                 adapter?.notifyDataSetChanged()
-                var query = Query(
+                val query = Query(
                     size = 15,
                     startDate = startDate.text.toString(),
                     endDate = endDate.text.toString(),
@@ -234,17 +225,24 @@ class SelectActivity : AppCompatActivity() {
                     when (result) {
                         is Result.Failure -> {
                             val ex = result.getException()
-                            Log.e("my", ex.toString())
+                            Toast.makeText(
+                                this@SelectActivity,
+                                "${resources.getString(R.string.network_err)}: $ex", Toast.LENGTH_SHORT
+                            ).show()
                         }
                         is Result.Success -> {
                             val data = result.get()
-                            Log.e("my", data.toString())
-                            intent.putExtra("SelectActivityResult", data)
+                            val dislikeKw = dislike.text.split(' ').toHashSet()
+                            val filteredNews =
+                                data.data.filterNot { it.keywords.any { kw -> dislikeKw.contains(kw.word) } }
+                                    .toTypedArray()
+                            val filteredData = data.copy(data = filteredNews)
+                            intent.putExtra("SelectActivityResult", filteredData)
                             setResult(42, intent)
                             finish()
                         }
                     }
-                }.join()
+                }
                 return false
             }
 

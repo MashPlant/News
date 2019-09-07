@@ -1,6 +1,7 @@
 package com.java.lichenhao
 
 
+import android.app.AlertDialog
 import android.content.Intent
 import android.os.Bundle
 import android.support.v7.app.ActionBarDrawerToggle
@@ -13,20 +14,24 @@ import kotlinx.android.synthetic.main.activity_list.*
 import android.database.MatrixCursor
 import android.app.SearchManager
 import android.content.Context
+import android.content.DialogInterface
 import android.provider.BaseColumns
 import android.view.*
-import android.support.v4.widget.SimpleCursorAdapter
 import android.database.Cursor
-import android.os.Parcel
-import org.jetbrains.anko.doAsync
-import org.jetbrains.anko.uiThread
-import javax.crypto.CipherOutputStream
+import android.view.View.OnLongClickListener
+import android.support.v4.view.MenuItemCompat.getActionView
+import android.util.Log
+import android.widget.ArrayAdapter
+import android.widget.ImageButton
+import android.widget.Spinner
 
 
 const val HISTORY_FILENAME = "History"
 
 // AccountManager.initGlobals中初始化
 var HISTORY = ArrayList<String>()
+
+val REMOVED_CAT = ArrayList<Pair<CharSequence, Int>>()
 
 class ListActivity : AppCompatActivity() {
     private lateinit var newsAdapter: NewsAdapter
@@ -41,7 +46,6 @@ class ListActivity : AppCompatActivity() {
         setContentView(R.layout.activity_list)
 
         setSupportActionBar(toolbar)
-
         supportActionBar?.let {
             it.setDisplayHomeAsUpEnabled(true)
             it.setHomeButtonEnabled(true)
@@ -60,48 +64,48 @@ class ListActivity : AppCompatActivity() {
 
     override fun onCreateOptionsMenu(menu: Menu): Boolean {
         menuInflater.inflate(R.menu.activity_list, menu)
-        val sv = menu.findItem(R.id.action_search).actionView as SearchView
-        sv.queryHint = resources.getString(R.string.list_search_hint)
-        sv.isSubmitButtonEnabled = true
-
-        sv.setOnCloseListener {
-            newsAdapter.finishSearch()
-            kindMenu.findItem(R.id.nav_kind0).isChecked = true // 回到最初的分类：最新(避免麻烦，懒得记录搜索前的分类)
-            kindMenu.findItem(R.id.nav_kind3).isChecked = false // 搜索结果一栏
-            prevCheckKind = R.id.nav_kind0
-            false
-        }
-        sv.findViewById<SearchView.SearchAutoComplete>(android.support.v7.appcompat.R.id.search_src_text).threshold = 0
-        val searchManager = getSystemService(Context.SEARCH_SERVICE) as SearchManager
-        sv.setSearchableInfo(searchManager.getSearchableInfo(componentName))
-        val coNames = arrayOf(SearchManager.SUGGEST_COLUMN_TEXT_1)
-        val viewIds = intArrayOf(android.R.id.text1)
-        val adapter = SimpleCursorAdapter(this, android.R.layout.simple_list_item_1, makeCursor(), coNames, viewIds)
-        sv.suggestionsAdapter = adapter
-
-
-        sv.setOnQueryTextListener(object : SearchView.OnQueryTextListener {
-            override fun onQueryTextSubmit(query: String): Boolean {
-                doSearch(query)
-                doAsync {
-                    HISTORY.add(0, query) // 逆序
-                    val parcel = Parcel.obtain()
-                    parcel.writeStringList(HISTORY)
-                    val fo = GLOBAL_CONTEXT.openFileOutput("$HISTORY_FILENAME-$USERNAME", Context.MODE_PRIVATE)
-                    CipherOutputStream(fo, CIPHER).use { it.write(parcel.marshall()) }
-                    parcel.recycle()
-                    uiThread {
-                        adapter.swapCursor(makeCursor())
-                    }
-                }
-                return true
-            }
-
-            override fun onQueryTextChange(newText: String): Boolean {
-                doSearch(newText)
-                return true
-            }
-        })
+//        val sv = menu.findItem(R.id.action_search).actionView as SearchView
+//        sv.queryHint = resources.getString(R.string.list_search_hint)
+//        sv.isSubmitButtonEnabled = true
+//
+//        sv.setOnCloseListener {
+//            newsAdapter.finishSearch()
+//            kindMenu.findItem(R.id.nav_kind0).isChecked = true // 回到最初的分类：最新(避免麻烦，懒得记录搜索前的分类)
+//            kindMenu.findItem(R.id.nav_kind3).isChecked = false // 搜索结果一栏
+//            prevCheckKind = R.id.nav_kind0
+//            false
+//        }
+//        sv.findViewById<SearchView.SearchAutoComplete>(android.support.v7.appcompat.R.id.search_src_text).threshold = 0
+//        val searchManager = getSystemService(Context.SEARCH_SERVICE) as SearchManager
+//        sv.setSearchableInfo(searchManager.getSearchableInfo(componentName))
+//        val coNames = arrayOf(SearchManager.SUGGEST_COLUMN_TEXT_1)
+//        val viewIds = intArrayOf(android.R.id.text1)
+//        val adapter = SimpleCursorAdapter(this, android.R.layout.simple_list_item_1, makeCursor(), coNames, viewIds)
+//        sv.suggestionsAdapter = adapter
+//
+//
+//        sv.setOnQueryTextListener(object : SearchView.OnQueryTextListener {
+//            override fun onQueryTextSubmit(query: String): Boolean {
+//                doSearch(query)
+//                doAsync {
+//                    HISTORY.add(0, query) // 逆序
+//                    val parcel = Parcel.obtain()
+//                    parcel.writeStringList(HISTORY)
+//                    val fo = GLOBAL_CONTEXT.openFileOutput("$HISTORY_FILENAME-$USERNAME", Context.MODE_PRIVATE)
+//                    CipherOutputStream(fo, CIPHER).use { it.write(parcel.marshall()) }
+//                    parcel.recycle()
+//                    uiThread {
+//                        adapter.swapCursor(makeCursor())
+//                    }
+//                }
+//                return true
+//            }
+//
+//            override fun onQueryTextChange(newText: String): Boolean {
+//                doSearch(newText)
+//                return true
+//            }
+//        })
 
         if (AppCompatDelegate.getDefaultNightMode() == AppCompatDelegate.MODE_NIGHT_YES) {
             menu.findItem(R.id.nightMode).title = "夜间模式（开）"
@@ -164,6 +168,21 @@ class ListActivity : AppCompatActivity() {
                     switchNightMode()
                 }
             }
+            R.id.add_category -> {
+                val builder = AlertDialog.Builder(this)
+                val spinner = Spinner(this)
+                spinner.adapter =
+                    ArrayAdapter(this, android.R.layout.simple_list_item_1, REMOVED_CAT.map { (title, _) -> title })
+                builder.setView(spinner)
+                    .setPositiveButton("确定") { _, _ ->
+                        val title = spinner.selectedItem.toString()
+                        val idx = REMOVED_CAT.indexOfFirst { it.first == title }
+                        nav_view.menu.findItem(REMOVED_CAT[idx].second).isVisible = true
+                        REMOVED_CAT.removeAt(idx)
+                    }
+                    .setNegativeButton("取消") { _, _ -> }
+                builder.create().show()
+            }
         }
         return super.onOptionsItemSelected(item)
     }
@@ -189,7 +208,11 @@ class ListActivity : AppCompatActivity() {
             it.isChecked = true
             toolbar.title = it.title
         }
+        var lastClick = 0L
         nav_view.setNavigationItemSelectedListener {
+            val cur = System.currentTimeMillis()
+            val isDoubleClick = (cur - lastClick) < 500L
+            lastClick = cur
             when (it.groupId) {
                 R.id.nav_kind -> {
                     newsAdapter.setCurKind(it.title)
@@ -197,10 +220,24 @@ class ListActivity : AppCompatActivity() {
                     prevCheckKind = it.itemId
                 }
                 R.id.nav_category -> {
-                    newsAdapter.setCurCategory(it.title)
-                    toolbar.title = it.title
-                    categoryMenu.findItem(prevCheckCategory).isChecked = false
-                    prevCheckCategory = it.itemId
+                    if (isDoubleClick) {
+                        val allString = resources.getString(R.string.nav_category0_string)
+                        if (it.title != allString) {
+                            it.isVisible = false
+                            REMOVED_CAT.add(Pair(it.title, it.itemId))
+                            if (it.isChecked) {
+                                newsAdapter.setCurCategory(allString)
+                                toolbar.title = allString
+                                it.isChecked = false
+                                prevCheckCategory = R.id.nav_category0
+                            }
+                        }
+                    } else {
+                        newsAdapter.setCurCategory(it.title)
+                        toolbar.title = it.title
+                        categoryMenu.findItem(prevCheckCategory).isChecked = false
+                        prevCheckCategory = it.itemId
+                    }
                 }
             }
             it.isChecked = true
