@@ -21,7 +21,6 @@ import java.text.SimpleDateFormat
 
 const val BASE_URL = "https://api2.newsminer.net/svc/news/queryNewsList?"
 const val CHARSET = "UTF-8"
-val DATE_FORMAT = SimpleDateFormat("yyyy-MM-dd")
 
 data class Query(
     val size: Int? = null,

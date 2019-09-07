@@ -5,13 +5,11 @@ import android.content.Intent
 import android.graphics.Bitmap
 import android.graphics.BitmapFactory
 import android.graphics.Color
-import android.graphics.drawable.ColorDrawable
 import android.net.Uri
 import android.provider.MediaStore
 import android.support.v7.app.AppCompatDelegate
 import android.support.v7.widget.RecyclerView
 import android.util.DisplayMetrics
-import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
@@ -25,7 +23,6 @@ import com.marshalchen.ultimaterecyclerview.UltimateRecyclerView
 
 import com.marshalchen.ultimaterecyclerview.UltimateRecyclerviewViewHolder
 import com.marshalchen.ultimaterecyclerview.UltimateViewAdapter
-import kotlin.math.max
 
 
 class NewsAdapter(private val activity: ListActivity, news_list: UltimateRecyclerView) :

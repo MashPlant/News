@@ -14,6 +14,7 @@ import android.widget.ArrayAdapter
 import android.widget.Toast
 import com.github.kittinunf.fuel.gson.responseObject
 import com.github.kittinunf.fuel.httpGet
+import com.github.kittinunf.result.Result
 import com.github.kittinunf.result.success
 import kotlinx.android.synthetic.main.activity_news.*
 import kotlinx.android.synthetic.main.content_news.*
@@ -79,7 +80,10 @@ class NewsActivity : AppCompatActivity() {
             ).withIndex()) {
                 if (idx < news.imageList.size) {
                     newsExt.downloadImage(idx) {
-                        it.success { img1 -> img.setImageBitmap(scale(img1, img.width)) }
+                        when (it) {
+                            is Result.Success -> img.setImageBitmap(scale(it.value, img.width))
+                            is Result.Failure -> img.visibility = View.GONE
+                        }
                     }
                 } else {
                     img.visibility = View.GONE
@@ -88,7 +92,9 @@ class NewsActivity : AppCompatActivity() {
         }
 
         if (!news.video.isNullOrEmpty()) {
-            newsExt.downloadVideo { url -> news_video.setUp(url, "") }
+            newsExt.downloadVideo { url ->
+                news_video.setUp(url, "")
+            }
         } else {
             news_video.visibility = View.GONE
         }

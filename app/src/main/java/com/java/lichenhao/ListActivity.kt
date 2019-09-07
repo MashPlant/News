@@ -8,21 +8,14 @@ import android.support.v7.app.ActionBarDrawerToggle
 import android.support.v7.app.AppCompatActivity
 import android.support.v7.app.AppCompatDelegate
 import android.support.v7.widget.LinearLayoutManager
-import android.support.v7.widget.SearchView
 
 import kotlinx.android.synthetic.main.activity_list.*
 import android.database.MatrixCursor
 import android.app.SearchManager
-import android.content.Context
-import android.content.DialogInterface
 import android.provider.BaseColumns
 import android.view.*
 import android.database.Cursor
-import android.view.View.OnLongClickListener
-import android.support.v4.view.MenuItemCompat.getActionView
-import android.util.Log
 import android.widget.ArrayAdapter
-import android.widget.ImageButton
 import android.widget.Spinner
 
 

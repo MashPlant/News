@@ -13,6 +13,7 @@ import com.google.gson.annotations.SerializedName
 import kotlinx.android.parcel.IgnoredOnParcel
 import kotlinx.android.parcel.Parcelize
 import java.io.File
+import java.lang.NullPointerException
 
 // 这些data class里使用List没有任何价值，直接用Array即可
 // 警告的"建议实现equals/hashCode"不用理，没有实现的类都不会用到这些方法
@@ -44,7 +45,12 @@ data class NewsExt(
 
     inline fun downloadImage(which: Int, crossinline handler: (Result<Bitmap, FuelError>) -> Unit) {
         imageDataList[which]?.let {
-            handler(Result.success(BitmapFactory.decodeByteArray(it, 0, it.size)))
+            val bitmap: Bitmap? = BitmapFactory.decodeByteArray(it, 0, it.size)
+            if (bitmap != null) {
+                handler(Result.success(bitmap))
+            } else {
+                handler(Result.error(FuelError.wrap(NullPointerException()))) // 可能是张gif，不支持
+            }
             return
         }
         news.imageList[which].httpGet().response { _, _, result ->
@@ -60,8 +66,9 @@ data class NewsExt(
         val videoPath = videoPath ?: run {
             handler(video) // 如果没有本地下载，则直接播放video网址(这样用户不需要等待)
             val path = "${GLOBAL_CONTEXT.filesDir.absolutePath}/video${System.currentTimeMillis()}.mp4"
-            video.httpDownload().fileDestination { _, _ -> File(path) }.response { _, _, _ -> } // 不阻塞，也不管它什么时候结束
-            videoPath = path
+            video.httpDownload().fileDestination { _, _ -> File(path) }.response { _, _, _ ->
+                videoPath = path // 不阻塞，下载好时才设置videoPath
+            }
             return
         }
         handler(videoPath) // 有本地下载，播放文件
