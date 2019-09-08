@@ -15,4 +15,7 @@
     <item
         android:id="@+id/shareImage"
         android:title="@string/news_share_image" />
+    <item
+        android:id="@+id/share"
+        android:title="分享至微博" />
 </menu>

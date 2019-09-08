@@ -221,6 +221,7 @@ class NewsAdapter(private val activity: ListActivity, news_list: UltimateRecycle
                     R.id.shareText -> {
                         val news = NewsData.curNews[adapterPosition].news
                         val mIntent = Intent(Intent.ACTION_SEND)
+                        mIntent.setPackage("com.tencent.mobileqq")
                         mIntent.putExtra(
                             Intent.EXTRA_TEXT,
                             "标题：\n" + news.title + "\n" + "正文：\n" + news.content + "..."
@@ -231,6 +232,7 @@ class NewsAdapter(private val activity: ListActivity, news_list: UltimateRecycle
                     R.id.shareImage -> {
                         val newsExt = NewsData.curNews[adapterPosition]
                         val mIntent = Intent(Intent.ACTION_SEND)
+                        mIntent.setPackage("com.tencent.mobileqq")
                         if (newsExt.imageDataList.isNotEmpty()) {
                             val byteArray = newsExt.imageDataList[0]
                             val bitmap = BitmapFactory.decodeByteArray(byteArray, 0, byteArray!!.size)
@@ -243,6 +245,28 @@ class NewsAdapter(private val activity: ListActivity, news_list: UltimateRecycle
                         } else {
                             Toast.makeText(activity, "这个新闻没有图片", Toast.LENGTH_SHORT).show()
                         }
+                    }
+                    R.id.share -> {
+                        val news = NewsData.curNews[adapterPosition].news
+                        val newsExt = NewsData.curNews[adapterPosition]
+                        val mIntent = Intent(Intent.ACTION_SEND)
+                        mIntent.setPackage("com.sina.weibo")
+                        if (newsExt.imageDataList.isNotEmpty()) {
+                            val byteArray = newsExt.imageDataList[0]
+                            val bitmap = BitmapFactory.decodeByteArray(byteArray, 0, byteArray!!.size)
+                            val path =
+                                MediaStore.Images.Media.insertImage(context.contentResolver, bitmap, "Title", null)
+                            val imageUri = Uri.parse(path)
+                            mIntent.putExtra(Intent.EXTRA_STREAM, imageUri)
+                        } else {
+                            Toast.makeText(activity, "这个新闻没有图片", Toast.LENGTH_SHORT).show()
+                        }
+                        mIntent.putExtra(
+                            Intent.EXTRA_TEXT,
+                            "标题：\n" + news.title + "\n" + "正文：\n" + news.content + "..."
+                        )
+                        mIntent.type = "image/*"
+                        activity.startActivity(Intent.createChooser(mIntent, "分享至微博"))
                     }
                 }
                 true

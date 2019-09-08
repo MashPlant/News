@@ -144,6 +144,7 @@ class NewsActivity : AppCompatActivity() {
             R.id.shareText -> {
                 val news = newsExt.news
                 val mIntent = Intent(Intent.ACTION_SEND)
+                mIntent.setPackage("com.tencent.mobileqq")
                 mIntent.putExtra(
                     Intent.EXTRA_TEXT,
                     "标题：\n" + news.title + "\n" + "正文：\n" + news.content + "..."
@@ -154,6 +155,7 @@ class NewsActivity : AppCompatActivity() {
             R.id.shareImage -> {
                 val mIntent = Intent(Intent.ACTION_SEND)
                 if (newsExt.imageDataList.isNotEmpty()) {
+                    mIntent.setPackage("com.tencent.mobileqq")
                     val byteArray = newsExt.imageDataList[0]
                     val bitmap = BitmapFactory.decodeByteArray(byteArray, 0, byteArray!!.size)
                     val path =
@@ -165,6 +167,28 @@ class NewsActivity : AppCompatActivity() {
                 } else {
                     Toast.makeText(this, "这个新闻没有图片", Toast.LENGTH_SHORT).show()
                 }
+            }
+            R.id.share -> {
+                val news = newsExt.news
+                val mIntent = Intent(Intent.ACTION_SEND)
+                mIntent.setPackage("com.sina.weibo")
+                if (newsExt.imageDataList.isNotEmpty()) {
+                    val byteArray = newsExt.imageDataList[0]
+                    val bitmap = BitmapFactory.decodeByteArray(byteArray, 0, byteArray!!.size)
+                    val path =
+                        MediaStore.Images.Media.insertImage(contentResolver, bitmap, "Title", null)
+                    val imageUri = Uri.parse(path)
+                    mIntent.putExtra(Intent.EXTRA_STREAM, imageUri)
+                    mIntent.type = "image/*"
+                } else {
+                    Toast.makeText(this, "这个新闻没有图片", Toast.LENGTH_SHORT).show()
+                }
+                mIntent.putExtra(
+                    Intent.EXTRA_TEXT,
+                    "标题：\n" + news.title + "\n" + "正文：\n" + news.content + "..."
+                )
+                mIntent.type = "image/*"
+                startActivity(Intent.createChooser(mIntent, "分享至微博"))
             }
         }
         return super.onOptionsItemSelected(item)
